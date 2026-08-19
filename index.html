@@ -4,13 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>吉隆坡 6 天 5 夜行程书 | 2026-08-29</title>
-    <script>
-        // Redirect to the actual itinerary HTML
-        window.location.href = './kuala-lumpur-itinerary.html';
-    </script>
-    <meta http-equiv="refresh" content="0;url=./kuala-lumpur-itinerary.html">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 48px 64px;
+            max-width: 800px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            font-size: 36px;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+        .dates {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 32px;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.2);
+        }
+        .card h2 {
+            font-size: 20px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .card p {
+            font-size: 14px;
+            color: #666;
+        }
+        .card .icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .footer {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #999;
+        }
+    </style>
 </head>
 <body>
-    <p>正在跳转到行程书... <a href="./kuala-lumpur-itinerary.html">点击这里</a></p>
+    <div class="container">
+        <h1>🏛️ 吉隆坡 6 天 5 夜行程书</h1>
+        <p class="dates">📅 2026-08-29 至 2026-09-03 · 2 人同行</p>
+        
+        <a href="./kuala-lumpur-itinerary.html" class="card">
+            <div class="icon">📖</div>
+            <h2>查看完整行程书</h2>
+            <p>精美排版 + 地图 + 时间轴 + 预算图表 + 风险提示</p>
+        </a>
+        
+        <a href="./editable.html" class="card">
+            <div class="icon">✏️</div>
+            <h2>可编辑版本</h2>
+            <p>点击文字直接修改 · Ctrl+S 保存到本地 · 自由调整行程</p>
+        </a>
+        
+        <div class="footer">
+            由 QClaw 出游规划师生成
+        </div>
+    </div>
 </body>
 </html>
