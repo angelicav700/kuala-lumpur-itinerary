@@ -281,15 +281,64 @@ footer {
 
 </style>
 
+<script>
+(function(){
+  var KEY = 'kl-itinerary-edits-v2';
+  var blocks = function(){ return document.querySelectorAll('[contenteditable="true"]'); };
+
+  function save(){
+    var data = {};
+    blocks().forEach(function(b, i){ data[i] = b.innerHTML; });
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){}
+    var dot = document.getElementById('save-dot');
+    if(dot){ dot.textContent = '已自动保存 ' + new Date().toLocaleTimeString('zh-CN', {hour12:false}); }
+  }
+
+  function load(){
+    try {
+      var raw = localStorage.getItem(KEY);
+      if(!raw) return false;
+      var data = JSON.parse(raw);
+      var any = false;
+      blocks().forEach(function(b, i){ if(data[i] !== undefined){ b.innerHTML = data[i]; any = true; } });
+      return any;
+    } catch(e){ return false; }
+  }
+
+  function bind(){
+    blocks().forEach(function(b){
+      b.addEventListener('input', save);
+      b.addEventListener('blur', save);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    load();
+    bind();
+    var dot = document.getElementById('save-dot');
+    if(dot){ dot.textContent = '改动会自动保存到本浏览器'; }
+  });
+
+  window.resetItinerary = function(){
+    try { localStorage.removeItem(KEY); } catch(e){}
+    location.reload();
+  };
+})();
+</script>
+
+
   [contenteditable="true"]{cursor:text;}
   [contenteditable="true"]:hover{outline:1px dashed #4a90d9; outline-offset:2px;}
   .edit-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:#1f4e79;color:#fff;
     font:14px/1.6 'Microsoft YaHei',sans-serif;padding:8px 16px;text-align:center;
     box-shadow:0 2px 8px rgba(0,0,0,.2);}
+  .edit-banner button{margin-left:12px;background:#fff;color:#1f4e79;border:none;border-radius:4px;
+    padding:3px 10px;font-size:13px;cursor:pointer;}
+  #save-dot{margin-left:12px;opacity:.8;font-size:12px;}
   body{padding-top:42px;}
 
 </head>
-<body><div class="edit-banner">📝 可编辑模式：点击任意文字即可修改，改完按 <b>Ctrl+S</b> 保存。地图与图表为自动生成，请只改文字、不要删除其容器。</div>
+<body><div class="edit-banner">📝 可编辑模式：点击任意文字直接修改，改动<u>自动保存到本浏览器</u>（关掉重开还在）。<span id="save-dot"></span><button onclick="resetItinerary()">重置为原始</button></div>
 <header class="cover">
   <div class="cover-meta">
     <h1>吉隆坡，马来西亚 · 6日行程</h1>
