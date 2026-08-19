@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>吉隆坡，马来西亚 · 2026-08-29 行程书</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* 出游规划师 · HTML 行程书样式 · v1.0 */
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  background: #fafafa;
+  color: #222;
+  line-height: 1.55;
+}
+header.cover {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: #fff;
+  padding: 60px 40px 40px;
+}
+header.cover h1 { margin: 0 0 12px; font-size: 32px; font-weight: 700; }
+header.cover .sub { font-size: 16px; opacity: 0.85; }
+.confidence-summary {
+  margin-top: 16px; font-size: 13px; opacity: 0.9;
+}
+.confidence-summary .dot {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  margin: 0 4px 0 12px; vertical-align: middle;
+}
+.dot-green  { background: #2ecc71; }
+.dot-yellow { background: #f1c40f; }
+.dot-gray   { background: #95a5a6; }
+.meta-stamp { margin-top: 8px; font-size: 12px; opacity: 0.6; }
+
+section {
+  max-width: 1080px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+section h2 {
+  font-size: 22px; margin: 32px 0 16px; padding-left: 12px;
+  border-left: 4px solid #3498db;
+}
+
+/* 总览地图 */
+#map {
+  width: 100%; height: 480px; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+/* 大交通 */
+.transport-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.transport-section .intra-tip {
+  grid-column: 1 / -1; background: #f0f4f8; padding: 16px; border-radius: 8px;
+}
+.dir-block h4 { margin: 0 0 12px; }
+.trans-card {
+  background: #fff; border-radius: 10px; padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 12px; position: relative;
+}
+.trans-mode { font-weight: 700; font-size: 18px; color: #3498db; }
+.trans-route { font-size: 15px; margin: 4px 0; }
+.trans-time { color: #555; font-size: 14px; }
+.trans-price { font-weight: 600; color: #e74c3c; margin-top: 6px; }
+.book-links {
+  margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e0e0e0;
+  font-size: 13px; color: #555;
+}
+.book-links .book-label { color: #888; margin-right: 6px; }
+.book-links a {
+  display: inline-block; margin-right: 10px; color: #3498db;
+  text-decoration: none; padding: 2px 0; border-bottom: 1px solid transparent;
+}
+.book-links a:hover { border-bottom-color: #3498db; }
+
+/* 小红书笔记区 */
+.xhs-section { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+.xhs-intro { color: #666; font-size: 14px; margin: 0 0 20px; }
+.xhs-group { margin-bottom: 24px; }
+.xhs-group h4 { margin: 0 0 12px; font-size: 16px; }
+.xhs-count { color: #999; font-size: 13px; font-weight: 400; margin-left: 6px; }
+.xhs-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px;
+}
+.xhs-card {
+  display: block; text-decoration: none; color: inherit;
+  background: #fafafa; border-radius: 10px; overflow: hidden; transition: transform 0.15s, box-shadow 0.15s;
+  border: 1px solid #eee;
+}
+.xhs-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.xhs-cover {
+  width: 100%; padding-top: 75%; background-size: cover; background-position: center;
+  background-color: #ddd;
+}
+.xhs-body { padding: 12px; }
+.xhs-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+.xhs-meta { font-size: 12px; color: #888; margin-bottom: 6px; }
+.xhs-meta span { margin-right: 10px; }
+.xhs-snippet { font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 8px; }
+.xhs-sentiment {
+  display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+}
+.xhs-sentiment-positive { background: #e8f5e9; color: #2e7d32; }
+.xhs-sentiment-negative { background: #ffebee; color: #c62828; }
+.xhs-sentiment-neutral  { background: #f0f0f0; color: #555; }
+.xhs-disclaimer { color: #999; font-size: 12px; margin-top: 16px; text-align: center; }
+
+/* 住宿 */
+.hotel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.hotel-card {
+  background: #fff; border-radius: 10px; padding: 18px; position: relative;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.hotel-card .h-rank {
+  position: absolute; top: 12px; right: 14px; font-weight: 700; color: #f39c12;
+}
+.h-price { color: #e74c3c; font-weight: 600; margin: 6px 0; }
+.h-rating, .h-loc { font-size: 13px; color: #555; }
+.h-amenities { margin: 8px 0 0; }
+.tag {
+  display: inline-block; background: #ecf0f1; color: #555;
+  border-radius: 4px; padding: 2px 8px; margin: 2px 4px 0 0; font-size: 12px;
+}
+.warning { color: #e67e22; font-size: 13px; margin-top: 6px; }
+
+/* 每日行程 */
+.day-card {
+  background: #fff; border-radius: 12px; padding: 24px;
+  margin-bottom: 20px; box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+.day-header h3 { margin: 0 0 6px; }
+.day-meta { font-size: 13px; color: #888; }
+.day-meta span { margin-right: 12px; }
+.timeline { list-style: none; padding-left: 0; margin: 16px 0 0; }
+.timeline .stop {
+  display: grid; grid-template-columns: 100px 1fr; gap: 16px;
+  border-left: 3px solid #3498db; padding: 10px 0 10px 14px; margin-left: 8px;
+}
+.timeline .stop:not(:last-child) { padding-bottom: 18px; }
+.t-time { font-weight: 600; color: #3498db; }
+.t-title { font-size: 15px; margin-bottom: 4px; }
+.t-emoji { margin-right: 6px; }
+.rating { color: #f39c12; margin-left: 8px; font-size: 13px; }
+.t-detail { font-size: 13px; color: #666; }
+.t-detail span { margin-right: 14px; }
+.stop-breakfast, .stop-lunch, .stop-dinner { border-left-color: #e74c3c; }
+.stop-evening { border-left-color: #9b59b6; }
+
+/* 预算 */
+.budget-section {
+  display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start;
+}
+.budget-pie-wrap {
+  background: #fff; border-radius: 10px; padding: 20px; display: flex; justify-content: center;
+}
+.budget-table table {
+  width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden;
+}
+.budget-table th, .budget-table td { padding: 10px 16px; text-align: left; border-bottom: 1px solid #eee; }
+.budget-table tr.grand td { font-weight: 700; background: #f7f9fc; }
+.tradeoffs {
+  grid-column: 1 / -1; background: #fff5e6; padding: 16px 20px; border-radius: 10px; margin-top: 8px;
+}
+
+/* 风险 */
+.risk-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.risk-block {
+  background: #fff; padding: 16px; border-radius: 10px; border-left: 4px solid #95a5a6;
+}
+.risk-block.confidence-green  { border-left-color: #2ecc71; }
+.risk-block.confidence-yellow { border-left-color: #f1c40f; }
+.risk-block.confidence-gray   { border-left-color: #95a5a6; }
+.risk-block h4 { margin: 0 0 10px; }
+.scam-group { margin-bottom: 10px; }
+.emergency { columns: 2; list-style: none; padding: 0; }
+
+/* 清单 */
+.checklist { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.check-group {
+  background: #fff; padding: 16px; border-radius: 10px;
+}
+.check-group h4 { margin: 0 0 8px; }
+.check-group ul { list-style: none; padding: 0; }
+.check-group li { padding: 4px 0; }
+
+/* 置信度徽章 */
+.confidence-badge {
+  position: absolute; top: 10px; right: 10px;
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.confidence-green  { background: #2ecc71; }
+.confidence-yellow { background: #f1c40f; }
+.confidence-gray   { background: #95a5a6; }
+
+footer {
+  text-align: center; color: #888; font-size: 12px; padding: 30px 20px;
+}
+
+@media print {
+  header.cover { background: #2c3e50 !important; -webkit-print-color-adjust: exact; }
+  .day-card, .hotel-card, .trans-card, .risk-block { break-inside: avoid; }
+  .book-btn { display: none; }
+}
+@media (max-width: 720px) {
+  .transport-section, .budget-section { grid-template-columns: 1fr; }
+}
+
+/* ===== v2.0 新增：实际路线 / 兜底卡 / 数据完整性 ===== */
+
+/* 每日行程的路线步骤 */
+.day-routes {
+  background: #f8f9fa; padding: 12px 16px; border-radius: 8px; margin: 12px 0;
+  border-left: 4px solid #3498db;
+}
+.day-routes h4 { margin: 0 0 8px; font-size: 14px; }
+.route-steps { list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 1.7; }
+.route-steps li { padding: 2px 0; }
+.route-source-real { color: #2ecc71; font-weight: 600; font-size: 12px; }
+.route-source-text { color: #555; font-weight: 500; }
+.route-source-fallback { color: #c62828; font-size: 12px; }
+
+/* 推荐理由 */
+.t-reason { color: #777; font-size: 13px; margin: 4px 0 6px; }
+
+/* 当天预算 */
+.day-budget { text-align: right; padding: 8px 0; color: #e67e22; font-weight: 600; }
+
+/* 坐标待校验 marker */
+.warn-badge {
+  display: inline-block; background: #fff3e0; color: #e67e22;
+  font-size: 11px; padding: 1px 8px; border-radius: 10px; margin-left: 6px;
+}
+
+/* xhs 空数据兜底卡 */
+.xhs-empty-card {
+  background: #fafafa; border: 2px dashed #ddd;
+  padding: 24px; border-radius: 12px; text-align: center;
+}
+.xhs-empty-card h4 { margin: 0 0 8px; color: #777; }
+.xhs-empty-card p { color: #888; margin: 4px 0; font-size: 14px; }
+.manual-search { list-style: none; padding: 0; margin-top: 16px; }
+.manual-search li {
+  display: inline-block; margin: 4px 8px;
+}
+.manual-search a {
+  display: inline-block; padding: 6px 14px;
+  background: #fff; border: 1px solid #ddd; border-radius: 16px;
+  color: #3498db; text-decoration: none; font-size: 13px;
+}
+.manual-search a:hover { border-color: #3498db; }
+
+/* 数据完整性面板 */
+.completeness-panel {
+  background: #fff; padding: 24px; border-radius: 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05); font-size: 14px;
+}
+.comp-row { margin-bottom: 14px; }
+.comp-row strong { display: block; margin-bottom: 6px; }
+.comp-row ul { margin: 0; padding-left: 20px; color: #555; line-height: 1.8; }
+.comp-warn ul { color: #e67e22; }
+.comp-tip {
+  border-top: 1px dashed #eee; padding-top: 12px; margin-top: 12px;
+  color: #888; font-size: 13px;
+}
+
+/* 地图图例 */
+.map-legend { font-family: inherit; }
+
+/* confidence 灰色 */
+.confidence-gray {
+  border-left-color: #95a5a6 !important;
+}
+.t-desc { color: #444; font-size: 13px; line-height: 1.6; margin: 4px 0 6px; padding-left: 10px; border-left: 3px solid #3498db; }
+.t-transport { font-size: 12px; color: #1e8449; background: #eafaf1; display: inline-block; padding: 2px 8px; border-radius: 10px; margin: 2px 0 5px; }
+
+</style>
+</head>
+<body>
+<header class="cover">
+  <div class="cover-meta">
+    <h1>吉隆坡，马来西亚 · 6日行程</h1>
+    <p class="sub">2026-08-29 ~ 2026-09-03 ｜ 2人 ｜ 预算 ¥10400</p>
+    <div class="confidence-summary">
+      <span class="dot dot-green"></span> 一手数据 2%
+      <span class="dot dot-yellow"></span> 抓取 98%
+      <span class="dot dot-gray"></span> 静态参考 0%
+    </div>
+    <div class="meta-stamp">数据生成时间 2026-08-19T10:22:34+08:00</div>
+  </div>
+</header>
+
+<!--
+═══════════════════════════════════════════════════════════════════════════════
+                         AGENT INSTRUCTIONS · 必读
+═══════════════════════════════════════════════════════════════════════════════
+本 HTML 共 8 个骨架 section，**全部必出**（无论数据完整度）。每个 section 下
+有具体「必须做到 X」的指令，agent 在生成 trip 数据时务必按指令准备字段；
+缺数据时自己想办法补（调工具 / WebSearch / 静态兜底），绝不允许空白渲染。
+缺失任何一项都视为本次任务未完成。
+═══════════════════════════════════════════════════════════════════════════════
+-->
+
+<!--
+  📍 总览地图 · AGENT MUST-DO:
+  ① POI 必须有坐标。拿不到真坐标时，用城市中心点 + POI 名 marker 兜底，
+     并在 poi.coord_status 写 "unverified"，模板会标"坐标待校验"
+  ② **路线必须是实际道路路线，不是两点之间的直线**。三种合法形式（任选）：
+     a) day.routes[].geometry = [[lng,lat],...] 真实 polyline 坐标数组（最佳）
+     b) day.routes[].description = "沿建国路向东 → 转入人民南路 → 春熙路"
+        路径文字版（OSRM/高德拿不到时用 WebSearch / 自己推理写出）
+     c) 完全无能为力时 day.routes[].source = "straight_line_unavailable"
+        模板会画虚线 + 红字"⚠️ 实际路线未获取"，但**不允许直接用直线还假装是真实路线**
+  ③ 同一天 POI 用同色 marker，不同天换色；起终点要有方向感
+-->
+<section id="overview-map">
+  <h2>📍 总览地图</h2>
+  <div id="map" style="height: 480px; border-radius: 12px;"></div>
+</section>
+
+<!--
+  🚄 大交通 · AGENT MUST-DO:
+  ① 至少给出 1 条去程 + 1 条回程（具体车次/航班号 + 时刻 + 参考价 + 查询时间）
+  ② 每条方案至少 3 个不同平台的可点订票链接（12306/携程/去哪儿/飞猪）
+  ③ 价格旁必须标"参考价 + 查询时刻"，不允许写绝对价
+  数据来源优先级：美团火车票 > 12306 > WebSearch（携程/去哪儿）
+-->
+<section id="transport">
+  <h2>🚄 大交通</h2>
+  <div class="transport-section">
+  <div class="dir-block">
+    <h4>去程</h4>
+    
+  </div>
+  <div class="dir-block">
+    <h4>回程</h4>
+    
+  </div>
+  
+    <div class="intra-tip">
+      <strong>市内交通</strong>
+      <ul>
+        
+        
+      </ul>
+    </div>
+  
+</div>
+</section>
+
+<!--
+  🏨 住宿候选 · AGENT MUST-DO:
+  ① 至少 3 家酒店候选（不能凑数，宁少勿假）
+  ② 每家必须有：酒店全名 / 价格区间 / ≥2 个不同平台的预订链接 / 一句"为什么推荐"
+  ③ 数据来源：美团酒店 > xhs 真实评价 > WebSearch
+  ④ 凑不齐 3 家时，明确写"暂时只找到 X 家，建议你打开美团搜更多"，不要硬编造
+-->
+<section id="hotel">
+  <h2>🏨 住宿候选</h2>
+  <div class="hotel-grid">
+  
+    <div class="hotel-card">
+      <div class="h-rank">#1</div>
+      <h4>酒店名待核实</h4>
+      <div class="h-price">
+        参考价待核实
+      </div>
+      <div class="h-rating">
+        
+      </div>
+      <div class="h-loc">📍 位置待核实</div>
+      
+      <div class="h-amenities">
+        
+      </div>
+      
+      <div class="book-links">
+        <span class="book-label">去预订：</span>
+        <a href="https://hotels.meituan.com/search/?q=None" target="_blank" rel="noopener">美团</a>
+        <a href="https://hotels.ctrip.com/hotels/list?city=&checkIn=&checkOut=&keyword=None" target="_blank" rel="noopener">携程</a>
+        <a href="https://hotel.fliggy.com/search.htm?searchType=hotel&keywords=None" target="_blank" rel="noopener">飞猪</a>
+        <a href="https://www.booking.com/searchresults.html?ss=None" target="_blank" rel="noopener">Booking</a>
+      </div>
+      <span class="confidence-badge confidence-yellow"></span>
+    </div>
+  
+</div>
+</section>
+
+<!--
+  📅 每日行程 · AGENT MUST-DO:
+  ① 必须按 trip.duration_days 给出**全部天数**的卡片（D1 ~ Dn 一个不能少）
+  ② 每天至少包含：当天主题 / 时间轴 / 3-6 个 POI / 三餐推荐
+  ③ 每个 POI 必须有：名称 / 推荐理由 / 用时建议 / 营业时间 / 评分（缺失时显式标）
+  ④ 每天必须有"当天小地图 + 当天路线"（路线规则同总览地图）
+  ⑤ 每天必须有：当天预算小计 + 体力指数（轻松/适中/暴走）
+-->
+<section id="days">
+  <h2>📅 每日行程</h2>
+  
+    <!--
+  AGENT MUST-DO（每天卡片）:
+  ① day.theme / day.fatigue_index 必填（否则 header 残缺）
+  ② day.stops 至少 3-6 条（含三餐 + 景点），每条必须有 time / poi.name / duration_min
+  ③ day.routes 必填（实际道路 polyline 或 路径文字版，规则同总览地图）
+  ④ stop.poi 缺字段时，agent 自己用 WebSearch 补 rating/open_hours/ticket_price
+-->
+<article class="day-card" data-day="1">
+  <header class="day-header">
+    <h3>D1 · 2026-08-29 (周六) · 落地 · 初夜吉隆坡</h3>
+    <div class="day-meta">
+      <span>📍 51km</span>
+      <span>🚶 0.3 体力指数</span>
+      <span>☁️ </span>
+    </div>
+  </header>
+
+  
+
+  <ol class="timeline">
+    
+      <li class="stop stop-arrive">
+        <div class="t-time">19:20</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>吉隆坡国际机场 (KLIA)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">吉隆坡国际机场(KLIA)是马来西亚最大机场，分 KLIA1 与 KLIA2 两座航站楼，亚航等廉航多在 KLIA2 起降。</div>
+          
+          
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 0 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-checkin">
+        <div class="t-time">20:30-21:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>Hotel Majestic Kuala Lumpur</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">始建于1932年的殖民时期豪华酒店，新古典主义建筑，吉隆坡地标性历史建筑，众多政要名流曾下榻。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 50km / 55min · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 30 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-dinner">
+        <div class="t-time">21:00-22:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍽️</span>
+            <strong>老中国咖啡馆 (Old China Cafe)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】娘惹(Peranakan/土生华人)菜，口味温和清淡、不辣，适合老人。位于中央艺术坊内的战前老建筑，装修保留南洋风貌。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 600m / 步行8分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+  </ol>
+
+  
+</article>
+  
+    <!--
+  AGENT MUST-DO（每天卡片）:
+  ① day.theme / day.fatigue_index 必填（否则 header 残缺）
+  ② day.stops 至少 3-6 条（含三餐 + 景点），每条必须有 time / poi.name / duration_min
+  ③ day.routes 必填（实际道路 polyline 或 路径文字版，规则同总览地图）
+  ④ stop.poi 缺字段时，agent 自己用 WebSearch 补 rating/open_hours/ticket_price
+-->
+<article class="day-card" data-day="2">
+  <header class="day-header">
+    <h3>D2 · 2026-08-30 (周日) · 老城怀旧 CityWalk（按离酒店远近串联：老火车站→独立广场→茨厂街→中央艺术坊，避8/31国庆封路）</h3>
+    <div class="day-meta">
+      <span>📍 13km</span>
+      <span>🚶 0.6 体力指数</span>
+      <span>☁️ </span>
+    </div>
+  </header>
+
+  
+
+  <ol class="timeline">
+    
+      <li class="stop stop-breakfast">
+        <div class="t-time">08:00-09:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🥐</span>
+            <strong>酒店早餐 (Hotel Majestic)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">酒店历史翼自助早餐，可在殖民风花园用早。</div>
+          
+          
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">09:30-10:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>吉隆坡老火车站 (Kuala Lumpur Railway Station)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">1910年建成的摩尔式建筑，俗称「白发老人」，曾为南亚最宏伟火车站之一，现为 Heritage Station。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 1km / 步行12分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">10:30-11:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>独立广场 &amp; 苏丹阿都沙末大厦 (Merdeka Square &amp; Sultan Abdul Samad Building)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">1957年马来亚在此宣布独立，立有全球最高旗杆(100米)，周边是英殖民时期建筑群。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 800m / 步行10分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-lunch">
+        <div class="t-time">11:45-12:45</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍜</span>
+            <strong>丽丰茶冰室 (Kedai Kopi Lai Foong)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】马来西亚咖啡店/茶室，主打咖喱叻沙、牛河、海南咖啡。茨厂街老牌街坊茶室，本地人从小吃到大。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 300m / 步行4分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">12:45-14:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>茨厂街 (Petaling Street / China Town)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">吉隆坡最古老的华人街，1880年代华人矿工聚居形成，街道两侧林立茶室、中药铺、娘惹糕点摊、假名牌档（俗称「茨厂街假货」）。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 100m / 步行1分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 75 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">14:00-15:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>中央艺术坊 (Central Market)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">1930年代巴生河岸的干货市场改建的文创商场，汇聚马来、华、印三族手工艺品与伴手礼。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 500m / 步行7分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">15:15-16:15</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>占美清真寺 (Masjid Jamek)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">1907年建成的吉隆坡最古老清真寺，莫卧儿风格，红白条纹穹顶+高耸宣礼塔，坐落在鹅唛河与巴生河汇合处。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 700m / 步行9分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">16:30-17:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>城市画廊 (KL City Gallery)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">1899年殖民风建筑改建的吉隆坡历史展厅，有著名「I ❤ KL」招牌和巨型吉隆坡大比例模型（4万根小木钉手工拼成）。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 800m / 步行10分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 30 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">17:15-17:45</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>国家皇宫 (Istana Negara)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">2011年启用的马来西亚新国家皇宫，金色圆顶+马来传统建筑融合；门口皇家骑兵换岗仪式每小时整点举行。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 3.8km / Grab约10-12分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 30 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-dinner">
+        <div class="t-time">18:30-19:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍽️</span>
+            <strong>Coliseum Café 咖啡店</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】1921年开业的殖民风海南西餐老店，主打海南鸡扒、Hainanese Chicken Rice、雪糕圣代，清淡不辣，适合老人。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 3.2km / Grab约8-10分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-activity">
+        <div class="t-time">20:00-21:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>吉隆坡塔 (KL Tower) 观景台</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">421米通讯塔，观景台位于282米，可360°俯瞰吉隆坡，视角比双子塔更贴近地面、人更少。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 1.8km / Grab约10-12分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+  </ol>
+
+  
+</article>
+  
+    <!--
+  AGENT MUST-DO（每天卡片）:
+  ① day.theme / day.fatigue_index 必填（否则 header 残缺）
+  ② day.stops 至少 3-6 条（含三餐 + 景点），每条必须有 time / poi.name / duration_min
+  ③ day.routes 必填（实际道路 polyline 或 路径文字版，规则同总览地图）
+  ④ stop.poi 缺字段时，agent 自己用 WebSearch 补 rating/open_hours/ticket_price
+-->
+<article class="day-card" data-day="3">
+  <header class="day-header">
+    <h3>D3 · 2026-08-31 (周一) · 马来西亚国庆日 · 黑风洞 + 下午武吉免登购物 + 晚上双子塔夜景 + 落日飞车（北→中→夜）</h3>
+    <div class="day-meta">
+      <span>📍 32km</span>
+      <span>🚶 0.75 体力指数</span>
+      <span>☁️ </span>
+    </div>
+  </header>
+
+  
+
+  <ol class="timeline">
+    
+      <li class="stop stop-breakfast">
+        <div class="t-time">08:00-09:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🥐</span>
+            <strong>酒店早餐 (Hotel Majestic)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">酒店历史翼自助早餐。</div>
+          
+          
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-transfer">
+        <div class="t-time">09:00-09:45</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>酒店 → 黑风洞 (Batu Caves)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">黑风洞在吉隆坡北郊，距市区约13公里，打车约40分钟。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 13km · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 45 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">09:45-11:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>黑风洞 (Batu Caves)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">吉隆坡北郊石灰岩洞穴群、印度教圣地，入口有42.7米全球最高大宝森神像，需爬272级彩色台阶抵达主庙洞（神庙洞）。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 景点内 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 105 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-transfer">
+        <div class="t-time">11:30-12:15</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>黑风洞 → KLCC</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">返回市区，前往KLCC。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 15km · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 45 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-lunch">
+        <div class="t-time">12:30-14:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍜</span>
+            <strong>Suria KLCC 美食广场 / 四楼餐厅</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】双子塔商场内美食广场与各式餐厅（马来餐、中餐、日料、西餐齐全），可看双子塔景观。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 KLCC 内 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">14:30-17:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>武吉免登 / 柏威年广场 (Pavilion KL)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">吉隆坡最热门购物商圈，奢侈品到本地品牌齐全，连接KLCC的空中步道。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 1km / 步行15分钟(有盖步道) 或 Grab5分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 180 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-dinner">
+        <div class="t-time">18:00-19:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍽️</span>
+            <strong>阿罗街 (Jalan Alor) 夜市大排档</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】吉隆坡最著名露天大排档街，炒粿条、烧鸡翼、沙爹、炒蟹、啤酒，本地人+游客热门。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 500m / 步行7分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">19:10-19:50</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>KLCC 双子塔夜景 (KLCC Park)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">KLCC 公园正对双子塔，是免费拍夜景的最佳机位。每晚 20:00、21:00 有 Lake Symphony 喷泉灯光秀。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 1km / Grab约5分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 40 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-activity">
+        <div class="t-time">20:00-22:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>落日飞车夜班 (KL City Tour Night Bus)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">吉隆坡夜间敞篷观光巴士，从武吉免登金河广场出发，2小时环绕市中心主要地标。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 1km / Grab约5分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 120 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+  </ol>
+
+  
+</article>
+  
+    <!--
+  AGENT MUST-DO（每天卡片）:
+  ① day.theme / day.fatigue_index 必填（否则 header 残缺）
+  ② day.stops 至少 3-6 条（含三餐 + 景点），每条必须有 time / poi.name / duration_min
+  ③ day.routes 必填（实际道路 polyline 或 路径文字版，规则同总览地图）
+  ④ stop.poi 缺字段时，agent 自己用 WebSearch 补 rating/open_hours/ticket_price
+-->
+<article class="day-card" data-day="4">
+  <header class="day-header">
+    <h3>D4 · 2026-09-01 (周二) · 云顶高原 · 户外特色项目</h3>
+    <div class="day-meta">
+      <span>📍 110km</span>
+      <span>🚶 0.7 体力指数</span>
+      <span>☁️ </span>
+    </div>
+  </header>
+
+  
+
+  <ol class="timeline">
+    
+      <li class="stop stop-breakfast">
+        <div class="t-time">08:00-09:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🥐</span>
+            <strong>酒店早餐 (Hotel Majestic)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">酒店历史翼自助早餐。</div>
+          
+          
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-transfer">
+        <div class="t-time">09:00-11:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>吉隆坡 → 云顶高原</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">吉隆坡至云顶高原约55公里，海拔升至1800米，山区常年20°C左右，是避暑度假胜地。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 55km · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-activity">
+        <div class="t-time">11:00-12:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>云顶高原 (Genting Highlands) - 第一世界广场</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">云顶核心娱乐综合体，室内游乐场、美食广场、赌场集中地。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 缆车15min · 🚡 缆车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-lunch">
+        <div class="t-time">12:30-13:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍜</span>
+            <strong>云顶美食广场 (First World Plaza Food Court)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】美食广场/小食中心，多种马来、中、印料理，价格比市区略贵。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 同区 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-activity">
+        <div class="t-time">13:30-16:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>云顶高原主题乐园 (Genting Highlands Theme Park)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">室外机动游戏与水上乐园，含20余项游乐设施，分天空世界与水上乐园两园。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 步行 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 180 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-return">
+        <div class="t-time">17:00-19:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>云顶高原 → 吉隆坡市区</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">下山返回吉隆坡市区，山区弯道多，建议 Grab 或包车。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 55km · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-dinner">
+        <div class="t-time">20:00-21:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍽️</span>
+            <strong>新九记活海鲜 (Restoran New Joo Kee)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】活海鲜/粤式煮法，招牌黑椒蟹、奶油虾，需提前订位。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 3km / Grab约15分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+  </ol>
+
+  
+</article>
+  
+    <!--
+  AGENT MUST-DO（每天卡片）:
+  ① day.theme / day.fatigue_index 必填（否则 header 残缺）
+  ② day.stops 至少 3-6 条（含三餐 + 景点），每条必须有 time / poi.name / duration_min
+  ③ day.routes 必填（实际道路 polyline 或 路径文字版，规则同总览地图）
+  ④ stop.poi 缺字段时，agent 自己用 WebSearch 补 rating/open_hours/ticket_price
+-->
+<article class="day-card" data-day="5">
+  <header class="day-header">
+    <h3>D5 · 2026-09-02 (周三) · 马六甲海峡一日游（世界文化遗产古城）</h3>
+    <div class="day-meta">
+      <span>📍 306km</span>
+      <span>🚶 0.85 体力指数</span>
+      <span>☁️ </span>
+    </div>
+  </header>
+
+  
+
+  <ol class="timeline">
+    
+      <li class="stop stop-breakfast">
+        <div class="t-time">08:00-09:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🥐</span>
+            <strong>酒店早餐 (Hotel Majestic)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">酒店历史翼自助早餐，出发前吃饱。</div>
+          
+          
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-transfer">
+        <div class="t-time">09:00-11:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>吉隆坡 → 马六甲 (Melaka)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">马六甲距吉隆坡约150公里，车程2小时。可Grab单程(RM150-250)或包车往返(RM300-450，更省心)。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 150km · 🚐 包车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 120 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">11:00-12:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>荷兰红屋 &amp; 荷兰广场 (Stadthuys)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">17世纪荷兰殖民红屋顶建筑群，马六甲地标，现为历史与民族博物馆。旁边紧邻圣地亚哥城堡(1511年葡萄牙堡垒遗址)与圣保罗山教堂(1521年遗址)，步行100-200米即可串联。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 步行区 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-lunch">
+        <div class="t-time">12:30-14:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍜</span>
+            <strong>鸡场街 (Jonker Street)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】娘惹菜与街头小吃街，海南鸡饭、娘惹糕、榴莲泡芙、椰糖糕俱全。马六甲老城核心，周末最热闹。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 300m / 步行4分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-activity">
+        <div class="t-time">14:30-15:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>马六甲河游船 (Melaka River Cruise)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">约45分钟游船看两岸壁画彩绘与老屋，傍晚凉快时最佳，是马六甲轻松看城的方式。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 200m / 步行3分钟 · 🚶 步行</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-scenic_spot">
+        <div class="t-time">16:00-17:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>马六甲海峡清真寺 (Strait of Malacca Mosque)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">建在马六甲海峡上的水上清真寺，落潮时步道连岸、涨潮似浮海，是马六甲海峡最标志性的景观。免费入内(需长袍)。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 3km / Grab约10分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-return">
+        <div class="t-time">17:30-19:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>马六甲 → 吉隆坡</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">返程约2小时，建议17:30前出发，避开晚高峰，19:30回到市区。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 150km · 🚐 包车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 120 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-dinner">
+        <div class="t-time">20:00-21:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍽️</span>
+            <strong>武吉免登晚餐 (Bukit Bintang)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】金三角商圈餐饮云集，中餐、西餐、日料、泰餐任选，逛街后轻松用餐。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 3km / Grab约12分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-evening">
+        <div class="t-time">21:30-22:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🌃</span>
+            <strong>双子塔夜景打卡 (KLCC Park)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">KLCC公园底层免费拍双子塔夜景，无需登塔，每晚灯光亮起时最佳。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 1km / Grab约8分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 30 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+  </ol>
+
+  
+</article>
+  
+    <!--
+  AGENT MUST-DO（每天卡片）:
+  ① day.theme / day.fatigue_index 必填（否则 header 残缺）
+  ② day.stops 至少 3-6 条（含三餐 + 景点），每条必须有 time / poi.name / duration_min
+  ③ day.routes 必填（实际道路 polyline 或 路径文字版，规则同总览地图）
+  ④ stop.poi 缺字段时，agent 自己用 WebSearch 补 rating/open_hours/ticket_price
+-->
+<article class="day-card" data-day="6">
+  <header class="day-header">
+    <h3>D6 · 2026-09-03 (周四) · 最后一天 · 早采购 + 最后午餐 → 出发机场</h3>
+    <div class="day-meta">
+      <span>📍 63km</span>
+      <span>🚶 0.45 体力指数</span>
+      <span>☁️ </span>
+    </div>
+  </header>
+
+  
+
+  <ol class="timeline">
+    
+      <li class="stop stop-breakfast">
+        <div class="t-time">08:00-09:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🥐</span>
+            <strong>酒店早餐 (Hotel Majestic)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">酒店历史翼自助早餐。</div>
+          
+          
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-activity">
+        <div class="t-time">09:30-11:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>皇家雪兰莪锡蜡厂 (Royal Selangor Pewter Factory)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">1885年创立，全球最大锡蜡厂，展示锡器制作工艺，可现场 DIY 制作小件带走。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 7km / Grab约20分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 90 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-lunch">
+        <div class="t-time">12:00-13:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">🍜</span>
+            <strong>新峰肉骨茶 (Sin Kuching Bah Kut Teh)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">【餐馆类型】肉骨茶(药材排骨汤)，汤底浓郁，配油条是经典吃法，茨厂街老字号。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 3km / Grab约10分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 60 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-checkout">
+        <div class="t-time">14:00</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>Hotel Majestic 退房取行李</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">退房并取行李，行李可寄前台至出发前。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 3km / Grab约10分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 30 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+      <li class="stop stop-depart">
+        <div class="t-time">16:30</div>
+        <div class="t-body">
+          <div class="t-title">
+            <span class="t-emoji">📌</span>
+            <strong>出发 - 吉隆坡国际机场 (KLIA)</strong>
+            
+            
+          </div>
+          
+            <div class="t-desc">前往 KLIA 机场，值机后免税区可购巧克力、白咖啡、燕窝等伴手礼(免税店在机场内)。</div>
+          
+          
+          <div class="t-transport">🚦 距上一站 50km / Grab约55-70分钟 · 🚕 Grab打车</div>
+          
+          <div class="t-detail">
+            
+            
+            <span>⏱️ 约 0 分钟</span>
+          </div>
+        </div>
+      </li>
+    
+  </ol>
+
+  
+</article>
+  
+</section>
+
+<!--
+  💰 预算明细 · AGENT MUST-DO:
+  ① 必须有总预算 + 6 类目占比（交通/住宿/餐饮/门票/购物/备用）
+  ② 必须有饼图（数据由 budget.categories 驱动，模板自带 Chart.js）
+  ③ 必须有"实际 vs 用户期望预算"对比，超支时标红
+  ④ 凑不齐细项时，按类目占比模板（见 data/skeleton_fallbacks.json）兜底
+-->
+<section id="budget">
+  <h2>💰 预算明细</h2>
+  <div class="budget-section">
+  <div class="budget-pie-wrap">
+    <canvas id="budget-pie" width="320" height="320"></canvas>
+  </div>
+  <div class="budget-table">
+    <table>
+      <thead><tr><th>类目</th><th>金额（¥）</th><th>占比</th></tr></thead>
+      <tbody>
+        
+        
+        <tr><td>大交通</td><td>2400</td><td>23.1%</td></tr>
+        <tr><td>住宿</td><td>0</td><td>0.0%</td></tr>
+        <tr><td>餐饮</td><td>1800</td><td>17.3%</td></tr>
+        <tr><td>门票</td><td>600</td><td>5.8%</td></tr>
+        <tr><td>市内交通</td><td>1000</td><td>9.6%</td></tr>
+        <tr><td>备用</td><td>600</td><td>5.8%</td></tr>
+        <tr class="grand"><td>合计</td><td>10400</td><td>人均 5200</td></tr>
+      </tbody>
+    </table>
+  </div>
+  
+</div>
+</section>
+
+<!--
+  ⚠️ 风险提示 · AGENT MUST-DO:
+  无论数据完整度，本节必须输出至少 3 类风险：
+    1. 天气（出行日预报 + 异常天气警告，缺时调 WebSearch）
+    2. 节假日 / 人流（结合 risk_knowledge.json + 出行日期）
+    3. 当地骗局 / 防坑（risk_knowledge.json 该城市条目 + xhs"X 避雷"补充）
+  每条风险必须标置信度 🟢🟡⚪
+-->
+<section id="risk">
+  <h2>⚠️ 风险提示</h2>
+  <!--
+  AGENT MUST-DO: 至少 3 类风险（天气 / 节假日 / 防坑），加 1 类应急联系。
+  上游 risk-check 给空时用 skeleton_fallbacks.risk_panel_default 兜底。
+-->
+<div class="risk-panel">
+  <div class="risk-block confidence-yellow">
+    <h4>🌤️ 天气</h4>
+    <p>8月底-9月初为吉隆坡雨季末，多午后/晚间阵雨，不影响出行，每天备伞即可</p>
+    
+      <ul><li>每天随身带伞，阵雨来得快去得快</li><li>云顶高原气温约18-24°C，带薄外套</li><li>双子塔/落日飞车等户外拍照，雨后效果反而更好</li></ul>
+    
+  </div>
+
+  
+    <div class="risk-block confidence-yellow">
+      <h4>🎉 节假日</h4>
+      <p><strong>马来西亚国庆日 (Hari Merdeka)</strong> · 8月31日是马来西亚独立日（国庆），恰逢你们Day3。当天全国庆典：独立广场(Merdeka Square)一带可能有阅兵/游行，茨厂街等老城区可能封路或临时关闭（已帮你取消茨厂街）。双子塔、KLCC等景点可能限流或调整开放时间。建议：双子塔务必提前购票；当天避免开车经过独立广场周边；夜场活动(落日飞车)不受影响。</p>
+      
+    </div>
+  
+
+  <div class="risk-block">
+    <h4>🚨 防坑提示</h4>
+    
+    
+      <div class="scam-group">
+        <strong>city_specific · 吉隆坡</strong>
+        <ul><li>机场Grab：有骗子假冒司机，在到达大厅举牌等你，建议在App内叫车而非接受陌生人</li><li>阿罗街夜市：价格比本地人区贵50%，属于游客价，正常</li><li>茨厂街：仿品多，购买奢侈品/名表需谨慎</li><li>出租车/包车：不使用Meter的司机，坚持用Grab或要求打表</li><li>景点门票代购：不要向陌生人买票，正规渠道：Klook/携程/现场柜台</li></ul>
+      </div>
+    
+      <div class="scam-group">
+        <strong>general</strong>
+        <ul><li>护照/钱包：人多的地方（夜市/商场）注意防盗</li><li>换汇：机场汇率差，在正规兑换店（Valu）换汇，不要在街边换</li><li>饮水：自来水不可直接喝，购买瓶装水</li></ul>
+      </div>
+    
+  </div>
+
+  <div class="risk-block confidence-green">
+    <h4>📞 应急电话</h4>
+    <ul class="emergency">
+      <li>报警 999</li>
+      <li>急救 120</li>
+      <li>旅游投诉 1-800-88-5050</li>
+      <li>消费维权 12315</li>
+      <li>气象预警 12379</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!--
+  📓 小红书真实笔记参考 · AGENT MUST-DO:
+  本节必出，至少 6-10 篇真实笔记，按主题分组（攻略/美食/住宿/拍照/避雷/其他）
+  数据获取（按优先级）：
+    Tier 1: 调 xhs CLI（用户已登录时）
+    Tier 2: WebSearch site:xiaohongshu.com（用户跳过登录时）
+    Tier 3: WebSearch 马蜂窝/抖音目的地关键词
+  完全失败时，渲染"本次未拿到第三方游记"提示卡 + 给一组手动搜索链接
+  （绝不允许这一节空白；本 section 即使 xhs_notes=None 也要 include）
+-->
+<section id="xhs-notes">
+  <h2>📓 小红书真实笔记参考</h2>
+  <!--
+  AGENT MUST-DO: 至少 6-10 篇真实笔记，按主题分组。
+  完全没拿到时，自动渲染"未拿到第三方游记"提示 + 给一组手动搜索链接。
+-->
+<div class="xhs-section">
+  
+  <p class="xhs-intro">这里是搜索过程中找到的高质量真实笔记，按主题分类，点击直达原文。</p>
+  
+    <div class="xhs-group">
+      <h4>真实笔记参考 <span class="xhs-count">4 篇</span></h4>
+      <div class="xhs-grid">
+        
+          <a class="xhs-card" href="https://www.xiaohongshu.com/discovery/item/xhs-001" target="_blank" rel="noopener">
+            
+            <div class="xhs-body">
+              <div class="xhs-title">吉隆坡落日飞车真实体验</div>
+              <div class="xhs-meta">
+                
+                
+                
+              </div>
+              
+              
+                <span class="xhs-sentiment xhs-sentiment-positive">👍 推荐</span>
+              
+            </div>
+          </a>
+        
+          <a class="xhs-card" href="https://www.xiaohongshu.com/discovery/item/xhs-002" target="_blank" rel="noopener">
+            
+            <div class="xhs-body">
+              <div class="xhs-title">大华酒店住后感</div>
+              <div class="xhs-meta">
+                
+                
+                
+              </div>
+              
+              
+                <span class="xhs-sentiment xhs-sentiment-positive">👍 推荐</span>
+              
+            </div>
+          </a>
+        
+          <a class="xhs-card" href="https://www.xiaohongshu.com/discovery/item/xhs-003" target="_blank" rel="noopener">
+            
+            <div class="xhs-body">
+              <div class="xhs-title">云顶高原防坑指南</div>
+              <div class="xhs-meta">
+                
+                
+                
+              </div>
+              
+              
+                <span class="xhs-sentiment xhs-sentiment-mixed">🔍 参考</span>
+              
+            </div>
+          </a>
+        
+          <a class="xhs-card" href="https://www.xiaohongshu.com/discovery/item/xhs-004" target="_blank" rel="noopener">
+            
+            <div class="xhs-body">
+              <div class="xhs-title">吉隆坡必吃美食清单</div>
+              <div class="xhs-meta">
+                
+                
+                
+              </div>
+              
+              
+                <span class="xhs-sentiment xhs-sentiment-positive">👍 推荐</span>
+              
+            </div>
+          </a>
+        
+      </div>
+    </div>
+  
+  <p class="xhs-disclaimer">
+    💡 笔记内容由作者发布，仅作参考。点击卡片跳转小红书原文。
+  </p>
+  
+</div>
+</section>
+
+<section id="data-completeness">
+  <h2>📊 数据完整性</h2>
+  <!--
+  AGENT MUST-DO:
+  这是固定底部面板，告诉用户哪些数据是一手 / 哪些是兜底。
+  data_sources 由 check_deps + agent 实际调用情况组装。
+-->
+<div class="completeness-panel">
+  <div class="comp-row">
+    <strong>✅ 已启用</strong>
+    <ul>
+      
+      
+      
+      <li>WebSearch — 兜底数据源</li>
+    </ul>
+  </div>
+  
+  <p class="comp-tip">
+    💡 想升级数据可信度？把对应数据源配上后告诉 agent「重跑 XX」即可增量更新。
+  </p>
+</div>
+</section>
+
+<!--
+  🎒 行前清单 · AGENT MUST-DO:
+  无论数据完整度，必须输出至少 4 类清单：
+    1. 证件（身份证/驾照/学生证/老年证）
+    2. 充电（充电宝/数据线/转换头）
+    3. 现金/支付（少量现金/支付宝微信备用）
+    4. 应急（常用药/急救联系/保险卡）
+  risk-check 给了具体内容就用具体内容，没给就用以上 4 类硬清单
+  （兜底数据见 data/skeleton_fallbacks.json）
+-->
+<section id="checklist">
+  <h2>🎒 行前清单</h2>
+  <!--
+  AGENT MUST-DO: checklist 至少 4 类（证件/充电/支付/应急）。
+  risk-check 给了具体内容用具体内容，没给就用 skeleton_fallbacks.json 兜底。
+-->
+
+<div class="checklist">
+  
+    <div class="check-group">
+      <h4>🪪 证件</h4>
+      <ul>
+        <li><label><input type="checkbox"> 护照（有效期6个月以上）</label></li><li><label><input type="checkbox"> 机票行程单（电子版）</label></li><li><label><input type="checkbox"> 酒店预订确认单</label></li>
+      </ul>
+    </div>
+  
+    <div class="check-group">
+      <h4>💊 健康/应急</h4>
+      <ul>
+        <li><label><input type="checkbox"> 肠胃药（风味偏辣）</label></li><li><label><input type="checkbox"> 防晒霜SPF50+</label></li><li><label><input type="checkbox"> 驱蚊液（热带地区）</label></li><li><label><input type="checkbox"> 常用药</label></li>
+      </ul>
+    </div>
+  
+    <div class="check-group">
+      <h4>☂️ 天气</h4>
+      <ul>
+        <li><label><input type="checkbox"> 折叠伞（每天必带）</label></li><li><label><input type="checkbox"> 薄外套（云顶高原用）</label></li><li><label><input type="checkbox"> 防晒衣/帽</label></li>
+      </ul>
+    </div>
+  
+    <div class="check-group">
+      <h4>🔌 充电/数码</h4>
+      <ul>
+        <li><label><input type="checkbox"> 英标转换插头</label></li><li><label><input type="checkbox"> 充电宝</label></li><li><label><input type="checkbox"> Grab App（提前下载+注册）</label></li><li><label><input type="checkbox"> Klook App</label></li>
+      </ul>
+    </div>
+  
+    <div class="check-group">
+      <h4>💵 现金/支付</h4>
+      <ul>
+        <li><label><input type="checkbox"> 马币（RM）约1000-1500/人，或带卡ATM取现</label></li><li><label><input type="checkbox"> Visa/Mastercard（商场适用）</label></li>
+      </ul>
+    </div>
+  
+    <div class="check-group">
+      <h4>📦 app_setup</h4>
+      <ul>
+        <li><label><input type="checkbox"> Grab（绑定信用卡/支付宝）</label></li><li><label><input type="checkbox"> Google Maps</label></li><li><label><input type="checkbox"> Klook（订票）</label></li>
+      </ul>
+    </div>
+  
+</div>
+</section>
+
+<footer>
+  <p>由出游规划师 v1.0.0 生成 · 2026-08-19T10:22:34+08:00</p>
+  <p>本报告所有价格 / 营业 / 评分均为查询时刻的参考值，请出行前再核实。</p>
+</footer>
+
+<script>
+  // 总览地图 —— 国内可用瓦片源（按可达性顺序），任何一个失败自动切下一个
+  const map = L.map('map', { preferCanvas: true });
+
+  const TILE_SOURCES = [
+    {
+      // 高德矢量瓦片（无需 key，国内最稳）
+      url: 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+      options: { subdomains: ['1','2','3','4'], attribution: '高德地图', maxZoom: 18 }
+    },
+    {
+      // 高德卫星瓦片（备用）
+      url: 'https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+      options: { subdomains: ['1','2','3','4'], attribution: '高德卫星', maxZoom: 18 }
+    },
+    {
+      // 腾讯地图瓦片（再备用）
+      url: 'https://rt{s}.map.gtimg.com/realtimerender?z={z}&x={x}&y={y}&type=vector&style=0',
+      options: { subdomains: ['0','1','2','3'], attribution: '腾讯地图', maxZoom: 18 }
+    },
+    {
+      // OSM（最后兜底，国内可能慢）
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      options: { subdomains: ['a','b','c'], attribution: 'OSM', maxZoom: 18 }
+    }
+  ];
+
+  let tileLayer;
+  let sourceIdx = 0;
+  function loadTileSource(idx) {
+    if (idx >= TILE_SOURCES.length) {
+      document.getElementById('map').innerHTML =
+        '<div style="padding:40px;text-align:center;color:#888;">地图加载失败，请检查网络后刷新</div>';
+      return;
+    }
+    if (tileLayer) map.removeLayer(tileLayer);
+    const src = TILE_SOURCES[idx];
+    tileLayer = L.tileLayer(src.url, src.options);
+    let errorCount = 0;
+    tileLayer.on('tileerror', function () {
+      errorCount++;
+      if (errorCount > 3) {
+        console.warn('瓦片源失败，切换到下一个：', src.attribution);
+        loadTileSource(idx + 1);
+      }
+    });
+    tileLayer.addTo(map);
+  }
+  loadTileSource(0);
+
+  const dayColors = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22'];
+  const allLatLngs = [];
+  const days = [{"date": "2026-08-29 (\u5468\u516d)", "day_index": 1, "day_num": "Day 1", "fatigue_index": 0.3, "meals": {"breakfast": "\u4e0d\u542b\uff08\u665a\u843d\u5730\uff09", "dinner": "\u8001\u4e2d\u56fd\u5496\u5561\u9986\uff08\u5a18\u60f9\u6e05\u6de1\u83dc\uff09", "lunch": "\u4e0d\u542b\uff08\u98de\u673a\u4e0a\uff09", "snack": "\u2014"}, "stops": [{"distance_from_prev": "\u2014", "duration_display": "0 \u5206\u949f", "duration_min": 0, "notes": "\u843d\u5730\u540eGrab\u6253\u8f66\uff0c\u7ea645-60\u5206\u949f\u5230\u5927\u534e\u9152\u5e97\uff0cRM70-90", "order": 1, "poi": {"address": "Sepang, KLIA", "desc": "\u5409\u9686\u5761\u56fd\u9645\u673a\u573a(KLIA)\u662f\u9a6c\u6765\u897f\u4e9a\u6700\u5927\u673a\u573a\uff0c\u5206 KLIA1 \u4e0e KLIA2 \u4e24\u5ea7\u822a\u7ad9\u697c\uff0c\u4e9a\u822a\u7b49\u5ec9\u822a\u591a\u5728 KLIA2 \u8d77\u964d\u3002", "lat": 2.7456, "lng": 101.7099, "name": "\u5409\u9686\u5761\u56fd\u9645\u673a\u573a (KLIA)"}, "time": "19:20", "transport": "\u2014", "type": "arrive"}, {"distance_from_prev": "50km / 55min", "duration_display": "30 \u5206\u949f", "duration_min": 30, "notes": "\u5927\u5802\u6709\u5386\u53f2\u5efa\u7b51\u7ffc\uff0c\u53ef\u62cd\u7167", "order": 2, "poi": {"address": "Jalan Tun H.S. Lee", "desc": "\u59cb\u5efa\u4e8e1932\u5e74\u7684\u6b96\u6c11\u65f6\u671f\u8c6a\u534e\u9152\u5e97\uff0c\u65b0\u53e4\u5178\u4e3b\u4e49\u5efa\u7b51\uff0c\u5409\u9686\u5761\u5730\u6807\u6027\u5386\u53f2\u5efa\u7b51\uff0c\u4f17\u591a\u653f\u8981\u540d\u6d41\u66fe\u4e0b\u69bb\u3002", "lat": 3.1455, "lng": 101.6968, "name": "Hotel Majestic Kuala Lumpur"}, "time": "20:30-21:00", "transport": "grab", "type": "checkin"}, {"booking_note": "\u65e0\u9700\u9884\u7ea6\uff0c\u6b65\u884c\u524d\u5f80", "confidence": "yellow", "distance_from_prev": "600m / \u6b65\u884c8\u5206\u949f", "duration_display": "90 \u5206\u949f", "duration_min": 90, "est_cost_rm": 80, "need_booking": false, "notes": "\u5a18\u60f9(Peranakan)\u83dc\uff0c\u53e3\u5473\u6e29\u548c\u6e05\u6de1\uff0c\u9002\u5408\u8001\u4eba\uff1b\u63a8\u8350\uff1a\u6930\u6d46\u996d\u3001\u7092\u7cbf\u6761\u3001\u5a18\u60f9\u5c0f\u7092\u3001kaya\u5410\u53f8\u3002\u4eba\u5747RM30-50\u3002\u4ece\u9152\u5e97\u6b65\u884c\u53ef\u8fbe\uff0c\u4e0d\u7528\u6253\u8f66\u3002", "order": 3, "poi": {"address": "Central Market Annexe, Jalan Hang Kasturi", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u5a18\u60f9(Peranakan/\u571f\u751f\u534e\u4eba)\u83dc\uff0c\u53e3\u5473\u6e29\u548c\u6e05\u6de1\u3001\u4e0d\u8fa3\uff0c\u9002\u5408\u8001\u4eba\u3002\u4f4d\u4e8e\u4e2d\u592e\u827a\u672f\u574a\u5185\u7684\u6218\u524d\u8001\u5efa\u7b51\uff0c\u88c5\u4fee\u4fdd\u7559\u5357\u6d0b\u98ce\u8c8c\u3002", "hours": "11:00-22:00", "lat": 3.1417, "lng": 101.6945, "name": "\u8001\u4e2d\u56fd\u5496\u5561\u9986 (Old China Cafe)"}, "time": "21:00-22:30", "transport": "walk", "type": "dinner"}], "summary": "\u665a\u95f4\u843d\u5730\uff0c\u5165\u4f4f\u5927\u534e\u9152\u5e97\uff0c\u9644\u8fd1\u6e05\u6de1\u672c\u5730\u9910\u5385\u665a\u9910", "theme": "\u843d\u5730 \u00b7 \u521d\u591c\u5409\u9686\u5761", "total_distance_km": 51, "weather": {"condition": "\u665a\u95f4\u9635\u96e8", "rain_prob": 0.4, "temp": "25-27\u00b0C"}}, {"date": "2026-08-30 (\u5468\u65e5)", "day_index": 2, "day_num": "Day 2", "fatigue_index": 0.6, "meals": {"breakfast": "\u5927\u534e\u9152\u5e97\u81ea\u52a9", "dinner": "Coliseum Caf\u00e9 \u6b96\u6c11\u98ce\u6d77\u5357\u897f\u9910", "lunch": "\u4e3d\u4e30\u8336\u51b0\u5ba4\uff08\u8328\u5382\u8857\u65c1\uff09", "snack": "\u8328\u5382\u8857\u5a18\u60f9\u7cd5 + \u4e2d\u592e\u827a\u672f\u574a\u624b\u4fe1 + \u57ce\u5e02\u753b\u5eca\u62cd\u7167"}, "stops": [{"distance_from_prev": "\u2014", "duration_display": "60 \u5206\u949f", "duration_min": 60, "notes": "\u5927\u534e\u9152\u5e97\u5386\u53f2\u7ffc\u81ea\u52a9\u65e9\u9910", "order": 1, "poi": {"desc": "\u9152\u5e97\u5386\u53f2\u7ffc\u81ea\u52a9\u65e9\u9910\uff0c\u53ef\u5728\u6b96\u6c11\u98ce\u82b1\u56ed\u7528\u65e9\u3002", "lat": 3.1455, "lng": 101.6968, "name": "\u9152\u5e97\u65e9\u9910 (Hotel Majestic)"}, "time": "08:00-09:00", "transport": "walk", "type": "breakfast"}, {"confidence": "yellow", "distance_from_prev": "1km / \u6b65\u884c12\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "need_booking": false, "notes": "\u79bb\u9152\u5e97\u6700\u8fd1\u7684\u6b96\u6c11\u5efa\u7b51\uff0c\u6b65\u884c12\u5206\u949f\u5373\u8fbe\u3002\u6469\u5c14\u5f0f\u5efa\u7b51\u5916\u89c2+\u94c1\u8def\u5c40\u5496\u5561\u9986\u3002", "order": 2, "poi": {"address": "Jalan Hishamuddin", "desc": "1910\u5e74\u5efa\u6210\u7684\u6469\u5c14\u5f0f\u5efa\u7b51\uff0c\u4fd7\u79f0\u300c\u767d\u53d1\u8001\u4eba\u300d\uff0c\u66fe\u4e3a\u5357\u4e9a\u6700\u5b8f\u4f1f\u706b\u8f66\u7ad9\u4e4b\u4e00\uff0c\u73b0\u4e3a Heritage Station\u3002", "lat": 3.1395, "lng": 101.69, "name": "\u5409\u9686\u5761\u8001\u706b\u8f66\u7ad9 (Kuala Lumpur Railway Station)", "ticket_price_rm": 0}, "time": "09:30-10:30", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "800m / \u6b65\u884c10\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "need_booking": false, "notes": "\u4ece\u8001\u706b\u8f66\u7ad9\u6b65\u884c10\u5206\u949f\u8fc7\u9a6c\u8def\u5373\u8fbe\u30028\u670830\u65e5\u56fd\u5e86\u524d\u4e00\u65e5\uff0c\u5e7f\u573a\u53ef\u80fd\u6709\u5f69\u6392\u5e03\u7f6e\uff0c\u5c01\u8def\u8f83\u5c11\u3002", "order": 3, "poi": {"address": "Jalan Raja", "desc": "1957\u5e74\u9a6c\u6765\u4e9a\u5728\u6b64\u5ba3\u5e03\u72ec\u7acb\uff0c\u7acb\u6709\u5168\u7403\u6700\u9ad8\u65d7\u6746(100\u7c73)\uff0c\u5468\u8fb9\u662f\u82f1\u6b96\u6c11\u65f6\u671f\u5efa\u7b51\u7fa4\u3002", "lat": 3.1394, "lng": 101.6959, "name": "\u72ec\u7acb\u5e7f\u573a \u0026 \u82cf\u4e39\u963f\u90fd\u6c99\u672b\u5927\u53a6 (Merdeka Square \u0026 Sultan Abdul Samad Building)", "ticket_price_rm": 0}, "time": "10:30-11:30", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "300m / \u6b65\u884c4\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 20, "need_booking": false, "notes": "\u4ece\u72ec\u7acb\u5e7f\u573a\u6b65\u884c4\u5206\u949f\u56de\u8328\u5382\u8857\u8001\u533a\u3002\u5496\u55b1\u53fb\u6c99+\u6d77\u5357\u9762\u5305\uff0cRM15-20\u3002", "order": 4, "poi": {"address": "Jalan Tun H.S. Lee", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u9a6c\u6765\u897f\u4e9a\u5496\u5561\u5e97/\u8336\u5ba4\uff0c\u4e3b\u6253\u5496\u55b1\u53fb\u6c99\u3001\u725b\u6cb3\u3001\u6d77\u5357\u5496\u5561\u3002\u8328\u5382\u8857\u8001\u724c\u8857\u574a\u8336\u5ba4\uff0c\u672c\u5730\u4eba\u4ece\u5c0f\u5403\u5230\u5927\u3002", "hours": "07:00-17:00", "lat": 3.1402, "lng": 101.6947, "name": "\u4e3d\u4e30\u8336\u51b0\u5ba4 (Kedai Kopi Lai Foong)"}, "time": "11:45-12:45", "transport": "walk", "type": "lunch"}, {"confidence": "yellow", "distance_from_prev": "100m / \u6b65\u884c1\u5206\u949f", "duration_display": "75 \u5206\u949f", "duration_min": 75, "est_cost_rm": 30, "need_booking": false, "notes": "\u4ece\u4e3d\u4e30\u51fa\u6765\u5c31\u662f\u8328\u5382\u8857\u53e3\u3002\u53ef\u987a\u8def\u770b\u8001\u8857\u666f\u3001\u4e70\u4e9b\u5a18\u60f9\u7cd5\uff08RM5-15\uff09\u5f53\u4e0b\u5348\u8336\u3002\u767d\u5929\u51c9\u5feb\u3001\u4eba\u5c11\uff0c\u6bd4\u665a\u4e0a\u66f4\u9002\u5408\u8001\u4eba\u3002", "order": 5, "poi": {"address": "Jalan Petaling", "desc": "\u5409\u9686\u5761\u6700\u53e4\u8001\u7684\u534e\u4eba\u8857\uff0c1880\u5e74\u4ee3\u534e\u4eba\u77ff\u5de5\u805a\u5c45\u5f62\u6210\uff0c\u8857\u9053\u4e24\u4fa7\u6797\u7acb\u8336\u5ba4\u3001\u4e2d\u836f\u94fa\u3001\u5a18\u60f9\u7cd5\u70b9\u644a\u3001\u5047\u540d\u724c\u6863\uff08\u4fd7\u79f0\u300c\u8328\u5382\u8857\u5047\u8d27\u300d\uff09\u3002", "hours": "17:00\u540e\u6700\u70ed\u95f9\uff0c\u767d\u5929\u6b65\u884c\u8857", "lat": 3.1408, "lng": 101.6945, "name": "\u8328\u5382\u8857 (Petaling Street / China Town)", "ticket_price_rm": 0}, "time": "12:45-14:00", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "500m / \u6b65\u884c7\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 50, "need_booking": false, "notes": "\u4ece\u8328\u5382\u8857\u6b65\u884c7\u5206\u949f\u8fc7\u9e45\u551b\u6cb3\u5373\u8fbe\u3002\u9a6c\u6765\u897f\u4e9a\u6587\u521b\u624b\u4fe1\u5929\u5802\uff0c\u4e8c\u697c\u5a18\u60f9\u5de5\u827a\u54c1\uff0c\u4e00\u697c\u5170\u82b1\u753b/\u51b0\u7bb1\u8d34\u3002", "order": 6, "poi": {"address": "Jalan Hang Kasturi", "desc": "1930\u5e74\u4ee3\u5df4\u751f\u6cb3\u5cb8\u7684\u5e72\u8d27\u5e02\u573a\u6539\u5efa\u7684\u6587\u521b\u5546\u573a\uff0c\u6c47\u805a\u9a6c\u6765\u3001\u534e\u3001\u5370\u4e09\u65cf\u624b\u5de5\u827a\u54c1\u4e0e\u4f34\u624b\u793c\u3002", "hours": "10:00-22:00", "lat": 3.1417, "lng": 101.6945, "name": "\u4e2d\u592e\u827a\u672f\u574a (Central Market)", "ticket_price_rm": 0}, "time": "14:00-15:00", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "700m / \u6b65\u884c9\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "need_booking": false, "notes": "\u4ece\u4e2d\u592e\u827a\u672f\u574a\u6b65\u884c9\u5206\u949f\u8fc7\u6865\u5373\u8fbe\u3002\u6cb3\u666f+\u53e4\u6e05\u771f\u5bfa\u5f88\u51fa\u7247\u3002", "order": 7, "poi": {"address": "Jalan Tun Perak", "desc": "1907\u5e74\u5efa\u6210\u7684\u5409\u9686\u5761\u6700\u53e4\u8001\u6e05\u771f\u5bfa\uff0c\u83ab\u5367\u513f\u98ce\u683c\uff0c\u7ea2\u767d\u6761\u7eb9\u7a79\u9876+\u9ad8\u8038\u5ba3\u793c\u5854\uff0c\u5750\u843d\u5728\u9e45\u551b\u6cb3\u4e0e\u5df4\u751f\u6cb3\u6c47\u5408\u5904\u3002", "hours": "09:00-12:30, 14:30-16:00", "lat": 3.1463, "lng": 101.6957, "name": "\u5360\u7f8e\u6e05\u771f\u5bfa (Masjid Jamek)", "ticket_price_rm": 0}, "time": "15:15-16:15", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "800m / \u6b65\u884c10\u5206\u949f", "duration_display": "30 \u5206\u949f", "duration_min": 30, "est_cost_rm": 20, "need_booking": false, "notes": "\u4ece\u5360\u7f8e\u6e05\u771f\u5bfa\u6b65\u884c10\u5206\u949f\u56de\u72ec\u7acb\u5e7f\u573a\u65c1\u3002\u5ba4\u5185\u5c55\u5385\u6709\u7a7a\u8c03\uff0c\u8001\u4eba\u53cb\u597d\u3002RM10/\u4eba\uff0c\u4e3b\u8981\u4ed8\u6a21\u578b\u95e8\u7968\u3002I \u2764 KL \u62db\u724c\u662f\u5fc5\u62cd\u3002", "order": 8, "poi": {"address": "Jalan Raja", "desc": "1899\u5e74\u6b96\u6c11\u98ce\u5efa\u7b51\u6539\u5efa\u7684\u5409\u9686\u5761\u5386\u53f2\u5c55\u5385\uff0c\u6709\u8457\u540d\u300cI \u2764 KL\u300d\u62db\u724c\u548c\u5de8\u578b\u5409\u9686\u5761\u5927\u6bd4\u4f8b\u6a21\u578b\uff084\u4e07\u6839\u5c0f\u6728\u9489\u624b\u5de5\u62fc\u6210\uff09\u3002", "hours": "09:00-18:00", "lat": 3.1401, "lng": 101.6953, "name": "\u57ce\u5e02\u753b\u5eca (KL City Gallery)", "ticket_price_rm": 10}, "time": "16:30-17:00", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "3.8km / Grab\u7ea610-12\u5206\u949f", "duration_display": "30 \u5206\u949f", "duration_min": 30, "est_cost_rm": 12, "need_booking": false, "notes": "\u4ece\u57ce\u5e02\u753b\u5eca\u6253\u8f66\u7ea610\u5206\u949f\uff0cRM10-15\u3002\u5efa\u8bae\u8d76\u4e0a 17:00 \u6574\u70b9\u6362\u5c97\u4eea\u5f0f\u3002\u53ea\u53ef\u5916\u89c2\u62cd\u7167\uff0c\u4e0d\u5165\u5185\u3002", "order": 9, "poi": {"address": "Jalan Duta", "desc": "2011\u5e74\u542f\u7528\u7684\u9a6c\u6765\u897f\u4e9a\u65b0\u56fd\u5bb6\u7687\u5bab\uff0c\u91d1\u8272\u5706\u9876+\u9a6c\u6765\u4f20\u7edf\u5efa\u7b51\u878d\u5408\uff1b\u95e8\u53e3\u7687\u5bb6\u9a91\u5175\u6362\u5c97\u4eea\u5f0f\u6bcf\u5c0f\u65f6\u6574\u70b9\u4e3e\u884c\u3002", "hours": "\u5168\u5929\uff08\u5916\u89c2\uff09", "lat": 3.175, "lng": 101.68, "name": "\u56fd\u5bb6\u7687\u5bab (Istana Negara)", "ticket_price_rm": 0}, "time": "17:15-17:45", "transport": "grab", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "3.2km / Grab\u7ea68-10\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 40, "need_booking": false, "notes": "\u4ece\u56fd\u5bb6\u7687\u5bab\u6253\u8f66\u56de\u9152\u5e97\u65b9\u5411\uff0cRM8-10\u3002\u8ddd\u9152\u5e97\u4ec5500\u7c73\u3002\u5409\u9686\u5761\u6700\u8001\u724c\u5496\u5561\u5e97\u4e4b\u4e00\uff0c\u6c1b\u56f4\u53e4\u5178\u3002RM30-50/\u4eba\u3002", "order": 10, "poi": {"address": "98 Jalan Tuanku Abdul Rahman", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u30111921\u5e74\u5f00\u4e1a\u7684\u6b96\u6c11\u98ce\u6d77\u5357\u897f\u9910\u8001\u5e97\uff0c\u4e3b\u6253\u6d77\u5357\u9e21\u6252\u3001Hainanese Chicken Rice\u3001\u96ea\u7cd5\u5723\u4ee3\uff0c\u6e05\u6de1\u4e0d\u8fa3\uff0c\u9002\u5408\u8001\u4eba\u3002", "hours": "11:00-22:00", "lat": 3.1485, "lng": 101.694, "name": "Coliseum Caf\u00e9 \u5496\u5561\u5e97"}, "time": "18:30-19:30", "transport": "grab", "type": "dinner"}, {"booking_note": "\u5efa\u8baeKlook\u63d0\u524d1-3\u5929\u8d2d\u7968 RM49/\u4eba\uff0c\u73b0\u573a\u53ef\u80fd\u6392\u961f", "confidence": "yellow", "distance_from_prev": "1.8km / Grab\u7ea610-12\u5206\u949f", "duration_display": "90 \u5206\u949f", "duration_min": 90, "est_cost_rm": 98, "need_booking": true, "notes": "360\u5ea6\u4fef\u77b0\u5409\u9686\u5761\u591c\u666f\uff0c\u6bd4\u767b\u53cc\u5b50\u5854\u4eba\u5c11\uff0cRM49/\u4eba\u3002\u5efa\u8baeKlook\u63d0\u524d\u8ba2\u3002\u8dddColiseum 1.8km\u3002", "order": 11, "poi": {"address": "Bukit Nanas", "desc": "421\u7c73\u901a\u8baf\u5854\uff0c\u89c2\u666f\u53f0\u4f4d\u4e8e282\u7c73\uff0c\u53ef360\u00b0\u4fef\u77b0\u5409\u9686\u5761\uff0c\u89c6\u89d2\u6bd4\u53cc\u5b50\u5854\u66f4\u8d34\u8fd1\u5730\u9762\u3001\u4eba\u66f4\u5c11\u3002", "hours": "09:00-22:00", "lat": 3.1356, "lng": 101.7036, "name": "\u5409\u9686\u5761\u5854 (KL Tower) \u89c2\u666f\u53f0", "ticket_price_rm": 49}, "time": "20:00-21:30", "transport": "grab", "type": "activity"}], "summary": "\u8001\u706b\u8f66\u7ad9 \u2192 \u72ec\u7acb\u5e7f\u573a \u2192 \u4e3d\u4e30\u5348\u9910 \u2192 \u8328\u5382\u8857 \u2192 \u4e2d\u592e\u827a\u672f\u574a \u2192 \u5360\u7f8e\u6e05\u771f\u5bfa \u2192 \u57ce\u5e02\u753b\u5eca \u2192 \u56fd\u5bb6\u7687\u5bab \u2192 Coliseum Caf\u00e9 \u2192 KL Tower \u591c\u666f", "theme": "\u8001\u57ce\u6000\u65e7 CityWalk\uff08\u6309\u79bb\u9152\u5e97\u8fdc\u8fd1\u4e32\u8054\uff1a\u8001\u706b\u8f66\u7ad9\u2192\u72ec\u7acb\u5e7f\u573a\u2192\u8328\u5382\u8857\u2192\u4e2d\u592e\u827a\u672f\u574a\uff0c\u907f8/31\u56fd\u5e86\u5c01\u8def\uff09", "total_distance_km": 13, "weather": {"condition": "\u591a\u4e91\u95f4\u6674\uff0c\u6709\u9635\u96e8", "rain_prob": 0.3, "temp": "25-32\u00b0C"}}, {"date": "2026-08-31 (\u5468\u4e00) \u00b7 \u9a6c\u6765\u897f\u4e9a\u56fd\u5e86\u65e5", "day_index": 3, "day_num": "Day 3", "fatigue_index": 0.75, "meals": {"breakfast": "\u5927\u534e\u9152\u5e97\u81ea\u52a9", "dinner": "\u963f\u7f57\u8857\u591c\u5e02\u5927\u6392\u6863", "lunch": "Suria KLCC \u7f8e\u98df\u5e7f\u573a", "snack": "\u67cf\u5a01\u5e74/\u6b66\u5409\u514d\u767b\u8d2d\u7269"}, "stops": [{"distance_from_prev": "\u2014", "duration_display": "60 \u5206\u949f", "duration_min": 60, "notes": "\u56fd\u5e86\u65e5\u5927\u534e\u9152\u5e97\u81ea\u52a9\u65e9\u9910", "order": 1, "poi": {"desc": "\u9152\u5e97\u5386\u53f2\u7ffc\u81ea\u52a9\u65e9\u9910\u3002", "lat": 3.1455, "lng": 101.6968, "name": "\u9152\u5e97\u65e9\u9910 (Hotel Majestic)"}, "time": "08:00-09:00", "transport": "walk", "type": "breakfast"}, {"confidence": "yellow", "distance_from_prev": "13km", "duration_display": "45 \u5206\u949f", "duration_min": 45, "est_cost_rm": 30, "need_booking": false, "notes": "\u56fd\u5e86\u65e5\u65e9\u4e0a\u4ece\u9152\u5e97\u76f4\u63a5\u6253\u8f66\u53bb\u9ed1\u98ce\u6d1e\uff0c\u907f\u5f00\u5e02\u533a\u72ec\u7acb\u5e7f\u573a\u5c01\u8def\u3002", "order": 2, "poi": {"address": "Grab \u7ea613km", "desc": "\u9ed1\u98ce\u6d1e\u5728\u5409\u9686\u5761\u5317\u90ca\uff0c\u8ddd\u5e02\u533a\u7ea613\u516c\u91cc\uff0c\u6253\u8f66\u7ea640\u5206\u949f\u3002", "lat": 3.2379, "lng": 101.6836, "name": "\u9152\u5e97 \u2192 \u9ed1\u98ce\u6d1e (Batu Caves)"}, "time": "09:00-09:45", "transport": "grab", "type": "transfer"}, {"confidence": "yellow", "distance_from_prev": "\u666f\u70b9\u5185", "duration_display": "105 \u5206\u949f", "duration_min": 105, "est_cost_rm": 0, "need_booking": false, "notes": "\u5370\u5ea6\u5e99\uff0c\u9700\u906e\u80a9\u819d\uff1b\u7334\u5b50\u591a\uff0c\u98df\u7269\u52ff\u5916\u9732\uff1b272\u7ea7\u53f0\u9636\u5efa\u8bae\u65e9\u4e0a\u53bb\u51c9\u5feb\u3002\u4e3b\u6d1e\u514d\u8d39\uff0cDark Cave\u751f\u6001\u5bfc\u89c8\u9700\u53e6\u8d2d\u7968(RM35)\u4e14\u63d0\u524d\u9884\u7ea6\u3002", "order": 3, "poi": {"address": "Batu Caves, Selangor", "desc": "\u5409\u9686\u5761\u5317\u90ca\u77f3\u7070\u5ca9\u6d1e\u7a74\u7fa4\u3001\u5370\u5ea6\u6559\u5723\u5730\uff0c\u5165\u53e3\u670942.7\u7c73\u5168\u7403\u6700\u9ad8\u5927\u5b9d\u68ee\u795e\u50cf\uff0c\u9700\u722c272\u7ea7\u5f69\u8272\u53f0\u9636\u62b5\u8fbe\u4e3b\u5e99\u6d1e\uff08\u795e\u5e99\u6d1e\uff09\u3002", "hours": "06:00-21:00", "lat": 3.2379, "lng": 101.6836, "name": "\u9ed1\u98ce\u6d1e (Batu Caves)", "ticket_price_rm": 0}, "time": "09:45-11:30", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "15km", "duration_display": "45 \u5206\u949f", "duration_min": 45, "est_cost_rm": 40, "need_booking": false, "notes": "\u4ece\u9ed1\u98ce\u6d1e\u6253\u8f66\u5230KLCC\u7ea640-45\u5206\u949f\uff0cRM35-50\u3002", "order": 4, "poi": {"desc": "\u8fd4\u56de\u5e02\u533a\uff0c\u524d\u5f80KLCC\u3002", "lat": 3.1577, "lng": 101.7118, "name": "\u9ed1\u98ce\u6d1e \u2192 KLCC"}, "time": "11:30-12:15", "transport": "grab", "type": "transfer"}, {"confidence": "yellow", "distance_from_prev": "KLCC \u5185", "duration_display": "90 \u5206\u949f", "duration_min": 90, "est_cost_rm": 60, "need_booking": false, "notes": "\u5728\u53cc\u5b50\u5854\u5546\u573a\u5348\u9910\u3002\u56fd\u5e86\u65e5 KLCC \u5468\u8fb9\u6709\u56fd\u65d7\u88c5\u9970\u548c\u5e86\u795d\u6d3b\u52a8\u3002", "order": 5, "poi": {"address": "KLCC, Kuala Lumpur City Centre", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u53cc\u5b50\u5854\u5546\u573a\u5185\u7f8e\u98df\u5e7f\u573a\u4e0e\u5404\u5f0f\u9910\u5385\uff08\u9a6c\u6765\u9910\u3001\u4e2d\u9910\u3001\u65e5\u6599\u3001\u897f\u9910\u9f50\u5168\uff09\uff0c\u53ef\u770b\u53cc\u5b50\u5854\u666f\u89c2\u3002", "hours": "10:00-22:00", "lat": 3.1577, "lng": 101.7118, "name": "Suria KLCC \u7f8e\u98df\u5e7f\u573a / \u56db\u697c\u9910\u5385"}, "time": "12:30-14:00", "transport": "walk", "type": "lunch"}, {"confidence": "yellow", "distance_from_prev": "1km / \u6b65\u884c15\u5206\u949f(\u6709\u76d6\u6b65\u9053) \u6216 Grab5\u5206\u949f", "duration_display": "180 \u5206\u949f", "duration_min": 180, "est_cost_rm": 0, "need_booking": false, "notes": "\u4eceKLCC\u7ecf\u6709\u76d6\u6b65\u9053\u76f4\u8fbe\u6b66\u5409\u514d\u767b\uff08\u7ea615\u5206\u949f\u6b65\u884c\uff09\uff0c\u6216\u4e00\u7ad9\u5730\u94c1\u3002\u4e0b\u5348\u6162\u6162\u901b\uff0c\u508d\u665a\u53ef\u53bb Lot 10 \u5341\u53f7\u80e1\u540c\u559d\u5496\u5561\u3002", "order": 6, "poi": {"address": "Bukit Bintang", "desc": "\u5409\u9686\u5761\u6700\u70ed\u95e8\u8d2d\u7269\u5546\u5708\uff0c\u5962\u4f88\u54c1\u5230\u672c\u5730\u54c1\u724c\u9f50\u5168\uff0c\u8fde\u63a5KLCC\u7684\u7a7a\u4e2d\u6b65\u9053\u3002", "hours": "10:00-22:00", "lat": 3.1488, "lng": 101.7137, "name": "\u6b66\u5409\u514d\u767b / \u67cf\u5a01\u5e74\u5e7f\u573a (Pavilion KL)"}, "time": "14:30-17:30", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "500m / \u6b65\u884c7\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 40, "need_booking": false, "notes": "\u6b66\u5409\u514d\u767b\u65c1\u6700\u6709\u540d\u7684\u7f8e\u98df\u8857\uff0c\u4eba\u591a\u70ed\u95f9\uff0cRM30-50/\u4eba\u3002\u8ddd\u67cf\u5a01\u5e74\u6b65\u884c7\u5206\u949f\u3002", "order": 7, "poi": {"address": "Jalan Alor, Bukit Bintang", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u5409\u9686\u5761\u6700\u8457\u540d\u9732\u5929\u5927\u6392\u6863\u8857\uff0c\u7092\u7cbf\u6761\u3001\u70e7\u9e21\u7ffc\u3001\u6c99\u7239\u3001\u7092\u87f9\u3001\u5564\u9152\uff0c\u672c\u5730\u4eba+\u6e38\u5ba2\u70ed\u95e8\u3002", "hours": "17:00-03:00", "lat": 3.1458, "lng": 101.7085, "name": "\u963f\u7f57\u8857 (Jalan Alor) \u591c\u5e02\u5927\u6392\u6863"}, "time": "18:00-19:00", "transport": "walk", "type": "dinner"}, {"confidence": "yellow", "distance_from_prev": "1km / Grab\u7ea65\u5206\u949f", "duration_display": "40 \u5206\u949f", "duration_min": 40, "est_cost_rm": 8, "need_booking": false, "notes": "\u56fd\u5e86\u65e5\u53cc\u5b50\u5854\u4eae\u706f\u7279\u522b\u7f8e\u3002\u4ece\u963f\u7f57\u8857\u6253\u8f66\u5230KLCC\u7ea65\u5206\u949f\uff0cRM6-8\u3002\u5efa\u8bae\u8d76\u4e0a 20:00 Lake Symphony \u55b7\u6cc9\u79c0(\u514d\u8d39)\u3002", "order": 8, "poi": {"address": "KLCC Park", "desc": "KLCC \u516c\u56ed\u6b63\u5bf9\u53cc\u5b50\u5854\uff0c\u662f\u514d\u8d39\u62cd\u591c\u666f\u7684\u6700\u4f73\u673a\u4f4d\u3002\u6bcf\u665a 20:00\u300121:00 \u6709 Lake Symphony \u55b7\u6cc9\u706f\u5149\u79c0\u3002", "hours": "\u5168\u5929", "lat": 3.1579, "lng": 101.7117, "name": "KLCC \u53cc\u5b50\u5854\u591c\u666f (KLCC Park)", "ticket_price_rm": 0}, "time": "19:10-19:50", "transport": "grab", "type": "scenic_spot"}, {"booking_note": "\u5efa\u8baeKlook\u63d0\u524d1-3\u5929\u8ba2\u7968 RM65/\u4eba(\u7ea6\u00a528-31)\uff0c\u56fd\u5e86\u65e5\u53ef\u80fd\u552e\u7f44", "confidence": "yellow", "distance_from_prev": "1km / Grab\u7ea65\u5206\u949f", "duration_display": "120 \u5206\u949f", "duration_min": 120, "est_cost_rm": 65, "need_booking": true, "notes": "\u4eceKLCC\u6253\u8f66\u56de\u91d1\u6cb3\u5e7f\u573a\u7ea65\u5206\u949f\uff0cRM6-8\u3002\u5efa\u8baeKlook\u63d0\u524d1-3\u5929\u8ba2\u7968 RM65/\u4eba(\u7ea6\u00a528-31)\uff0c\u56fd\u5e86\u65e5\u53ef\u80fd\u552e\u7f44\u3002", "order": 9, "poi": {"address": "\u91d1\u6cb3\u5e7f\u573a (Sungei Wang Plaza) \u53d1\u8f66", "desc": "\u5409\u9686\u5761\u591c\u95f4\u655e\u7bf7\u89c2\u5149\u5df4\u58eb\uff0c\u4ece\u6b66\u5409\u514d\u767b\u91d1\u6cb3\u5e7f\u573a\u51fa\u53d1\uff0c2\u5c0f\u65f6\u73af\u7ed5\u5e02\u4e2d\u5fc3\u4e3b\u8981\u5730\u6807\u3002", "hours": "20:00-22:00", "lat": 3.1462, "lng": 101.7086, "name": "\u843d\u65e5\u98de\u8f66\u591c\u73ed (KL City Tour Night Bus)", "ticket_price_rm": 65}, "time": "20:00-22:00", "transport": "grab", "type": "activity"}], "summary": "\u9ed1\u98ce\u6d1e \u2192 KLCC\u5348\u9910 \u2192 \u6b66\u5409\u514d\u767b/\u67cf\u5a01\u5e74(\u4e0b\u5348) \u2192 \u963f\u7f57\u8857\u665a\u9910 \u2192 KLCC\u53cc\u5b50\u5854\u591c\u666f \u2192 \u843d\u65e5\u98de\u8f66", "theme": "\u9ed1\u98ce\u6d1e + \u4e0b\u5348\u6b66\u5409\u514d\u767b\u8d2d\u7269 + \u665a\u4e0a\u53cc\u5b50\u5854\u591c\u666f + \u843d\u65e5\u98de\u8f66\uff08\u5317\u2192\u4e2d\u2192\u591c\uff09", "total_distance_km": 32, "weather": {"condition": "\u591a\u4e91\u95f4\u6674\uff0c\u53ef\u80fd\u5348\u540e\u96f7\u9635\u96e8", "rain_prob": 0.4, "temp": "25-33\u00b0C"}}, {"date": "2026-09-01 (\u5468\u4e8c)", "day_index": 4, "day_num": "Day 4", "fatigue_index": 0.7, "meals": {"breakfast": "\u5927\u534e\u9152\u5e97\u81ea\u52a9", "dinner": "\u65b0\u4e5d\u8bb0\u6d3b\u6d77\u9c9c", "lunch": "\u4e91\u9876\u9ad8\u539f\u7f8e\u98df\u5e7f\u573a"}, "stops": [{"distance_from_prev": "\u2014", "duration_display": "60 \u5206\u949f", "duration_min": 60, "order": 1, "poi": {"desc": "\u9152\u5e97\u5386\u53f2\u7ffc\u81ea\u52a9\u65e9\u9910\u3002", "lat": 3.1455, "lng": 101.6968, "name": "\u9152\u5e97\u65e9\u9910 (Hotel Majestic)"}, "time": "08:00-09:00", "transport": "walk", "type": "breakfast"}, {"confidence": "yellow", "distance_from_prev": "55km", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 70, "need_booking": false, "notes": "Grab\u6253\u8f66\u81f3Awana Hub\uff0c\u7ea6RM60-80\uff0c\u5efa\u8bae8:30\u51fa\u53d1\uff1b\u6216\u9884\u7ea6\u5305\u8f66\u5f80\u8fd4RM250-350\u3002", "order": 2, "poi": {"address": "Grab\u81f3\u4e91\u9876\u7f06\u8f66\u7ad9 (Awana)", "desc": "\u5409\u9686\u5761\u81f3\u4e91\u9876\u9ad8\u539f\u7ea655\u516c\u91cc\uff0c\u6d77\u62d4\u5347\u81f31800\u7c73\uff0c\u5c71\u533a\u5e38\u5e7420\u00b0C\u5de6\u53f3\uff0c\u662f\u907f\u6691\u5ea6\u5047\u80dc\u5730\u3002", "lat": 3.1455, "lng": 101.6968, "name": "\u5409\u9686\u5761 \u2192 \u4e91\u9876\u9ad8\u539f", "ticket_price_rm": 0}, "time": "09:00-11:00", "transport": "grab", "type": "transfer"}, {"confidence": "yellow", "distance_from_prev": "\u7f06\u8f6615min", "duration_display": "90 \u5206\u949f", "duration_min": 90, "est_cost_rm": 50, "need_booking": false, "notes": "\u4e91\u9876\u9ad8\u539f\u5e73\u5747\u6c14\u6e2920\u00b0C\uff0c\u907f\u6691\u80dc\u5730\uff1b\u7b2c\u4e00\u4e16\u754c\u5e7f\u573a\u6709\u6e38\u4e50\u573a\u3001\u8d4c\u573a\u3001\u7f8e\u98df\u3002", "order": 3, "poi": {"address": "Genting Highlands, Pahang", "desc": "\u4e91\u9876\u6838\u5fc3\u5a31\u4e50\u7efc\u5408\u4f53\uff0c\u5ba4\u5185\u6e38\u4e50\u573a\u3001\u7f8e\u98df\u5e7f\u573a\u3001\u8d4c\u573a\u96c6\u4e2d\u5730\u3002", "hours": "\u5168\u592924\u5c0f\u65f6", "lat": 3.4239, "lng": 101.7902, "name": "\u4e91\u9876\u9ad8\u539f (Genting Highlands) - \u7b2c\u4e00\u4e16\u754c\u5e7f\u573a", "ticket_price_rm": 0}, "time": "11:00-12:30", "transport": "cable_car", "type": "activity"}, {"confidence": "yellow", "distance_from_prev": "\u540c\u533a", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 40, "need_booking": false, "notes": "\u9009\u62e9\u591a\uff0c\u4ef7\u683c\u6bd4KL\u7565\u8d35\uff0cRM20-40\u3002", "order": 4, "poi": {"address": "\u7b2c\u4e00\u4e16\u754c\u5e7f\u573a", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u7f8e\u98df\u5e7f\u573a/\u5c0f\u98df\u4e2d\u5fc3\uff0c\u591a\u79cd\u9a6c\u6765\u3001\u4e2d\u3001\u5370\u6599\u7406\uff0c\u4ef7\u683c\u6bd4\u5e02\u533a\u7565\u8d35\u3002", "hours": "\u5168\u5929", "lat": 3.4239, "lng": 101.7902, "name": "\u4e91\u9876\u7f8e\u98df\u5e7f\u573a (First World Plaza Food Court)"}, "time": "12:30-13:30", "transport": "walk", "type": "lunch"}, {"booking_note": "\u5efa\u8baeKlook\u63d0\u524d1-3\u5929\u8d2d\u7968 RM55/\u56ed\uff0c\u73b0\u573a\u8d2d\u7968\u53ef\u80fd\u6392\u957f\u961f", "confidence": "yellow", "distance_from_prev": "\u6b65\u884c", "duration_display": "180 \u5206\u949f", "duration_min": 180, "est_cost_rm": 55, "need_booking": true, "notes": "\u5ba4\u5916\u6c34\u4e0a\u4e50\u56ed+\u673a\u52a8\u6e38\u620f\uff0c\u9009\u5176\u4e00\uff1b\u95e8\u7968RM55\uff081\u56ed\uff09/ RM80\uff08\u4e24\u56ed\uff09\u3002", "order": 5, "poi": {"address": "Genting Highlands", "desc": "\u5ba4\u5916\u673a\u52a8\u6e38\u620f\u4e0e\u6c34\u4e0a\u4e50\u56ed\uff0c\u542b20\u4f59\u9879\u6e38\u4e50\u8bbe\u65bd\uff0c\u5206\u5929\u7a7a\u4e16\u754c\u4e0e\u6c34\u4e0a\u4e50\u56ed\u4e24\u56ed\u3002", "hours": "10:00-18:00", "lat": 3.4239, "lng": 101.7902, "name": "\u4e91\u9876\u9ad8\u539f\u4e3b\u9898\u4e50\u56ed (Genting Highlands Theme Park)", "ticket_price_rm": 55}, "time": "13:30-16:30", "transport": "walk", "type": "activity"}, {"confidence": "yellow", "distance_from_prev": "55km", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 70, "need_booking": false, "notes": "\u4e0b\u5c71Grab\u7ea61\u5c0f\u65f6\uff0c\u5efa\u8bae17:00\u51fa\u53d1\uff0c\u907f\u5f00\u9ad8\u5cf0\u3002", "order": 6, "poi": {"desc": "\u4e0b\u5c71\u8fd4\u56de\u5409\u9686\u5761\u5e02\u533a\uff0c\u5c71\u533a\u5f2f\u9053\u591a\uff0c\u5efa\u8bae Grab \u6216\u5305\u8f66\u3002", "lat": 3.4239, "lng": 101.7902, "name": "\u4e91\u9876\u9ad8\u539f \u2192 \u5409\u9686\u5761\u5e02\u533a"}, "time": "17:00-19:30", "transport": "grab", "type": "return"}, {"booking_note": "\u5efa\u8bae\u63d0\u524d1\u5929\u7535\u8bdd\u8ba2\u4f4d\uff0c\u5426\u5219\u9ad8\u5cf0\u9700\u7b49\u4f4d", "confidence": "yellow", "distance_from_prev": "3km / Grab\u7ea615\u5206\u949f", "duration_display": "90 \u5206\u949f", "duration_min": 90, "est_cost_rm": 120, "need_booking": true, "notes": "\u9ed1\u6912\u87f9+\u5976\u6cb9\u867e\uff0c\u9700\u63d0\u524d\u8ba2\u4f4d\uff0cRM80-120\u3002", "order": 7, "poi": {"address": "Jalanquebrada", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u6d3b\u6d77\u9c9c/\u7ca4\u5f0f\u716e\u6cd5\uff0c\u62db\u724c\u9ed1\u6912\u87f9\u3001\u5976\u6cb9\u867e\uff0c\u9700\u63d0\u524d\u8ba2\u4f4d\u3002", "hours": "17:00-23:00", "lat": 3.1381, "lng": 101.6996, "name": "\u65b0\u4e5d\u8bb0\u6d3b\u6d77\u9c9c (Restoran New Joo Kee)"}, "time": "20:00-21:30", "transport": "grab", "type": "dinner"}], "summary": "\u4e91\u9876\u9ad8\u539f\u4e3b\u9898\u4e50\u56ed + \u6e05\u6c34\u5ca9\u5bfb\u5e7d + \u9ad8\u539f\u4eab\u4e50", "theme": "\u4e91\u9876\u9ad8\u539f \u00b7 \u6237\u5916\u7279\u8272\u9879\u76ee", "total_distance_km": 110, "weather": {"condition": "\u5c71\u533a\u51c9\u723d\uff0c\u591a\u4e91\u6709\u96fe", "rain_prob": 0.4, "temp": "18-24\u00b0C"}}, {"date": "2026-09-02 (\u5468\u4e09)", "day_index": 5, "day_num": "Day 5", "fatigue_index": 0.85, "meals": {"breakfast": "\u5927\u534e\u9152\u5e97\u81ea\u52a9", "dinner": "\u6b66\u5409\u514d\u767b\u533a", "lunch": "\u9e21\u573a\u8857\u5a18\u60f9\u5c0f\u5403"}, "stops": [{"distance_from_prev": "\u2014", "duration_display": "60 \u5206\u949f", "duration_min": 60, "order": 1, "poi": {"desc": "\u9152\u5e97\u5386\u53f2\u7ffc\u81ea\u52a9\u65e9\u9910\uff0c\u51fa\u53d1\u524d\u5403\u9971\u3002", "lat": 3.1455, "lng": 101.6968, "name": "\u9152\u5e97\u65e9\u9910 (Hotel Majestic)"}, "time": "08:00-09:00", "transport": "walk", "type": "breakfast"}, {"confidence": "yellow", "distance_from_prev": "150km", "duration_display": "120 \u5206\u949f", "duration_min": 120, "est_cost_rm": 400, "need_booking": false, "notes": "\u5efa\u8bae\u5305\u8f66\u5f80\u8fd4\uff0c\u53f8\u673a\u7b49\u5019\u4e00\u65e5\uff0c\u7701\u53bb\u8fd4\u7a0b\u53eb\u8f66\u9ebb\u70e6\uff1b\u6216Grab\u4f46\u8fd4\u7a0b\u53ef\u80fd\u96be\u53eb\u8f66\u3002", "order": 2, "poi": {"address": "\u5305\u8f66/Grab \u7ea6150km", "desc": "\u9a6c\u516d\u7532\u8ddd\u5409\u9686\u5761\u7ea6150\u516c\u91cc\uff0c\u8f66\u7a0b2\u5c0f\u65f6\u3002\u53efGrab\u5355\u7a0b(RM150-250)\u6216\u5305\u8f66\u5f80\u8fd4(RM300-450\uff0c\u66f4\u7701\u5fc3)\u3002", "lat": 2.1896, "lng": 102.2501, "name": "\u5409\u9686\u5761 \u2192 \u9a6c\u516d\u7532 (Melaka)"}, "time": "09:00-11:00", "transport": "charter", "type": "transfer"}, {"confidence": "yellow", "distance_from_prev": "\u6b65\u884c\u533a", "duration_display": "90 \u5206\u949f", "duration_min": 90, "need_booking": false, "notes": "\u7ea2\u5c4b\u3001\u57ce\u5821\u3001\u5723\u4fdd\u7f57\u5c71\u4e09\u5904\u76f8\u90bb\uff0c\u5efa\u8bae\u4e00\u8d77\u6b65\u884c\u6e38\u89c8\uff1b\u767b\u5723\u4fdd\u7f57\u5c71\u53ef\u4fef\u77b0\u9a6c\u516d\u7532\u6d77\u5ce1\u3002", "order": 3, "poi": {"address": "Dutch Square, Melaka", "desc": "17\u4e16\u7eaa\u8377\u5170\u6b96\u6c11\u7ea2\u5c4b\u9876\u5efa\u7b51\u7fa4\uff0c\u9a6c\u516d\u7532\u5730\u6807\uff0c\u73b0\u4e3a\u5386\u53f2\u4e0e\u6c11\u65cf\u535a\u7269\u9986\u3002\u65c1\u8fb9\u7d27\u90bb\u5723\u5730\u4e9a\u54e5\u57ce\u5821(1511\u5e74\u8461\u8404\u7259\u5821\u5792\u9057\u5740)\u4e0e\u5723\u4fdd\u7f57\u5c71\u6559\u5802(1521\u5e74\u9057\u5740)\uff0c\u6b65\u884c100-200\u7c73\u5373\u53ef\u4e32\u8054\u3002", "hours": "09:00-17:30", "lat": 2.1944, "lng": 102.2493, "name": "\u8377\u5170\u7ea2\u5c4b \u0026 \u8377\u5170\u5e7f\u573a (Stadthuys)", "ticket_price_rm": 0}, "time": "11:00-12:30", "transport": "walk", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "300m / \u6b65\u884c4\u5206\u949f", "duration_display": "90 \u5206\u949f", "duration_min": 90, "est_cost_rm": 40, "need_booking": false, "notes": "\u4ece\u8377\u5170\u5e7f\u573a\u6b65\u884c\u5230\u9e21\u573a\u8857\u7ea6300\u7c73\u3002\u5348\u9910\u63a8\u8350\u5a18\u60f9\u53fb\u6c99\u3001\u6d77\u5357\u9e21\u996d\u3002", "order": 4, "poi": {"address": "Jalan Hang Jebat, Melaka", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u5a18\u60f9\u83dc\u4e0e\u8857\u5934\u5c0f\u5403\u8857\uff0c\u6d77\u5357\u9e21\u996d\u3001\u5a18\u60f9\u7cd5\u3001\u69b4\u83b2\u6ce1\u8299\u3001\u6930\u7cd6\u7cd5\u4ff1\u5168\u3002\u9a6c\u516d\u7532\u8001\u57ce\u6838\u5fc3\uff0c\u5468\u672b\u6700\u70ed\u95f9\u3002", "hours": "10:00-22:00", "lat": 2.197, "lng": 102.246, "name": "\u9e21\u573a\u8857 (Jonker Street)"}, "time": "12:30-14:00", "transport": "walk", "type": "lunch"}, {"confidence": "yellow", "distance_from_prev": "200m / \u6b65\u884c3\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 60, "need_booking": false, "notes": "\u7801\u5934\u5728\u9e21\u573a\u8857\u9644\u8fd1\uff0c\u6b65\u884c\u53ef\u8fbe\u3002RM30/\u4eba\uff0c\u73b0\u573a\u4e70\u7968\u5373\u53ef\u3002", "order": 5, "poi": {"address": "Melaka River", "desc": "\u7ea645\u5206\u949f\u6e38\u8239\u770b\u4e24\u5cb8\u58c1\u753b\u5f69\u7ed8\u4e0e\u8001\u5c4b\uff0c\u508d\u665a\u51c9\u5feb\u65f6\u6700\u4f73\uff0c\u662f\u9a6c\u516d\u7532\u8f7b\u677e\u770b\u57ce\u7684\u65b9\u5f0f\u3002", "hours": "09:00-23:30", "lat": 2.195, "lng": 102.248, "name": "\u9a6c\u516d\u7532\u6cb3\u6e38\u8239 (Melaka River Cruise)", "ticket_price_rm": 30}, "time": "14:30-15:30", "transport": "walk", "type": "activity"}, {"confidence": "yellow", "distance_from_prev": "3km / Grab\u7ea610\u5206\u949f", "duration_display": "90 \u5206\u949f", "duration_min": 90, "need_booking": false, "notes": "\u8ddd\u8001\u57ce\u533a\u7ea63km\uff0c\u5efa\u8baeGrab\u3002\u508d\u665a\u5149\u5f71\u6700\u597d\uff0c\u662f\u5f53\u65e5\u6536\u5c3e\u91cd\u70b9\u3002", "order": 6, "poi": {"address": "Jalan Pulau Melaka", "desc": "\u5efa\u5728\u9a6c\u516d\u7532\u6d77\u5ce1\u4e0a\u7684\u6c34\u4e0a\u6e05\u771f\u5bfa\uff0c\u843d\u6f6e\u65f6\u6b65\u9053\u8fde\u5cb8\u3001\u6da8\u6f6e\u4f3c\u6d6e\u6d77\uff0c\u662f\u9a6c\u516d\u7532\u6d77\u5ce1\u6700\u6807\u5fd7\u6027\u7684\u666f\u89c2\u3002\u514d\u8d39\u5165\u5185(\u9700\u957f\u888d)\u3002", "hours": "\u5168\u5929", "lat": 2.218, "lng": 102.256, "name": "\u9a6c\u516d\u7532\u6d77\u5ce1\u6e05\u771f\u5bfa (Strait of Malacca Mosque)", "ticket_price_rm": 0}, "time": "16:00-17:30", "transport": "grab", "type": "scenic_spot"}, {"confidence": "yellow", "distance_from_prev": "150km", "duration_display": "120 \u5206\u949f", "duration_min": 120, "need_booking": false, "notes": "\u5305\u8f66\u8fd4\u56de\uff0c\u53f8\u673a\u9001\u56de\u9152\u5e97\u3002", "order": 7, "poi": {"desc": "\u8fd4\u7a0b\u7ea62\u5c0f\u65f6\uff0c\u5efa\u8bae17:30\u524d\u51fa\u53d1\uff0c\u907f\u5f00\u665a\u9ad8\u5cf0\uff0c19:30\u56de\u5230\u5e02\u533a\u3002", "lat": 3.1455, "lng": 101.6968, "name": "\u9a6c\u516d\u7532 \u2192 \u5409\u9686\u5761"}, "time": "17:30-19:30", "transport": "charter", "type": "return"}, {"confidence": "yellow", "distance_from_prev": "3km / Grab\u7ea612\u5206\u949f", "duration_display": "90 \u5206\u949f", "duration_min": 90, "est_cost_rm": 80, "need_booking": false, "notes": "\u56de\u5230\u5409\u9686\u5761\u540e\u6b66\u5409\u514d\u767b\u533a\u665a\u9910\u3002", "order": 8, "poi": {"address": "\u6b66\u5409\u514d\u767b", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u91d1\u4e09\u89d2\u5546\u5708\u9910\u996e\u4e91\u96c6\uff0c\u4e2d\u9910\u3001\u897f\u9910\u3001\u65e5\u6599\u3001\u6cf0\u9910\u4efb\u9009\uff0c\u901b\u8857\u540e\u8f7b\u677e\u7528\u9910\u3002", "lat": 3.1471, "lng": 101.7099, "name": "\u6b66\u5409\u514d\u767b\u665a\u9910 (Bukit Bintang)"}, "time": "20:00-21:30", "transport": "grab", "type": "dinner"}, {"confidence": "yellow", "distance_from_prev": "1km / Grab\u7ea68\u5206\u949f", "duration_display": "30 \u5206\u949f", "duration_min": 30, "need_booking": false, "notes": "\u9a6c\u516d\u7532\u4e00\u65e5\u6e38\u540e\u8f7b\u677e\u6536\u5c3e\uff0c\u514d\u8d39\u62cd\u53cc\u5b50\u5854\u3002", "order": 9, "poi": {"address": "KLCC \u5e95\u5c42\u82b1\u56ed", "desc": "KLCC\u516c\u56ed\u5e95\u5c42\u514d\u8d39\u62cd\u53cc\u5b50\u5854\u591c\u666f\uff0c\u65e0\u9700\u767b\u5854\uff0c\u6bcf\u665a\u706f\u5149\u4eae\u8d77\u65f6\u6700\u4f73\u3002", "lat": 3.1511, "lng": 101.7124, "name": "\u53cc\u5b50\u5854\u591c\u666f\u6253\u5361 (KLCC Park)"}, "time": "21:30-22:30", "transport": "grab", "type": "evening"}], "summary": "\u5409\u9686\u5761 \u2192 \u8377\u5170\u7ea2\u5c4b \u2192 \u9e21\u573a\u8857 \u2192 \u9a6c\u516d\u7532\u6cb3 \u2192 \u9a6c\u516d\u7532\u6d77\u5ce1\u6e05\u771f\u5bfa \u2192 \u8fd4\u56de\u5409\u9686\u5761", "theme": "\u9a6c\u516d\u7532\u6d77\u5ce1\u4e00\u65e5\u6e38\uff08\u4e16\u754c\u6587\u5316\u9057\u4ea7\u53e4\u57ce\uff09", "total_distance_km": 306, "weather": {"condition": "\u6674\u95f4\u591a\u4e91\uff0c\u6709\u9635\u96e8", "rain_prob": 0.4, "temp": "26-32\u00b0C"}}, {"date": "2026-09-03 (\u5468\u56db)", "day_index": 6, "day_num": "Day 6", "fatigue_index": 0.45, "meals": {"breakfast": "\u5927\u534e\u9152\u5e97\u81ea\u52a9", "dinner": "\u2014 (\u673a\u573a\u6216\u98de\u673a\u4e0a)", "lunch": "\u65b0\u5cf0\u8089\u9aa8\u8336\uff08\u6700\u540e\u5348\u9910\uff09"}, "stops": [{"distance_from_prev": "\u2014", "duration_display": "60 \u5206\u949f", "duration_min": 60, "order": 1, "poi": {"desc": "\u9152\u5e97\u5386\u53f2\u7ffc\u81ea\u52a9\u65e9\u9910\u3002", "lat": 3.1455, "lng": 101.6968, "name": "\u9152\u5e97\u65e9\u9910 (Hotel Majestic)"}, "time": "08:00-09:00", "transport": "walk", "type": "breakfast"}, {"booking_note": "\u514d\u8d39\u53c2\u89c2\u65e0\u9700\u9884\u7ea6\uff1bDIY\u4f53\u9a8cRM40\u73b0\u573a\u62a5\u540d\u5373\u53ef", "confidence": "yellow", "distance_from_prev": "7km / Grab\u7ea620\u5206\u949f", "duration_display": "90 \u5206\u949f", "duration_min": 90, "est_cost_rm": 40, "need_booking": false, "notes": "\u4e16\u754c\u6700\u5927\u9521\u8721\u5382\u4e4b\u4e00\uff0c\u514d\u8d39\u53c2\u89c2+\u5236\u4f5c\u5de5\u574a\u4f53\u9a8c\uff08RM40\u81ea\u5236\u932b\u5668\uff09\uff0c\u53ef\u4e70\u624b\u4fe1\u3002\u8ddd\u9152\u5e977km\uff0cGrab 20\u5206\u949f\u3002", "order": 2, "poi": {"address": "Jalan Hulu", "desc": "1885\u5e74\u521b\u7acb\uff0c\u5168\u7403\u6700\u5927\u9521\u8721\u5382\uff0c\u5c55\u793a\u9521\u5668\u5236\u4f5c\u5de5\u827a\uff0c\u53ef\u73b0\u573a DIY \u5236\u4f5c\u5c0f\u4ef6\u5e26\u8d70\u3002", "hours": "09:00-17:00", "lat": 3.0762, "lng": 101.7027, "name": "\u7687\u5bb6\u96ea\u5170\u83aa\u9521\u8721\u5382 (Royal Selangor Pewter Factory)", "ticket_price_rm": 0}, "time": "09:30-11:00", "transport": "grab", "type": "activity"}, {"confidence": "yellow", "distance_from_prev": "3km / Grab\u7ea610\u5206\u949f", "duration_display": "60 \u5206\u949f", "duration_min": 60, "est_cost_rm": 50, "need_booking": false, "notes": "\u6700\u540e\u5348\u9910\u5fc5\u5403\uff0c\u8089\u9aa8\u8336+\u732a\u809a\u6c64\uff0cRM25-40\u3002\u8ddd\u9521\u8721\u53823km\uff0cGrab 10\u5206\u949f\u3002", "order": 3, "poi": {"address": "Jalan Maharajalela", "desc": "\u3010\u9910\u9986\u7c7b\u578b\u3011\u8089\u9aa8\u8336(\u836f\u6750\u6392\u9aa8\u6c64)\uff0c\u6c64\u5e95\u6d53\u90c1\uff0c\u914d\u6cb9\u6761\u662f\u7ecf\u5178\u5403\u6cd5\uff0c\u8328\u5382\u8857\u8001\u5b57\u53f7\u3002", "hours": "08:00-15:00", "lat": 3.1362, "lng": 101.6941, "name": "\u65b0\u5cf0\u8089\u9aa8\u8336 (Sin Kuching Bah Kut Teh)"}, "time": "12:00-13:00", "transport": "grab", "type": "lunch"}, {"distance_from_prev": "3km / Grab\u7ea610\u5206\u949f", "duration_display": "30 \u5206\u949f", "duration_min": 30, "notes": "\u5348\u9910\u540eGrab\u56de\u9152\u5e97\u53d6\u884c\u674e\uff0c\u529e\u7406\u9000\u623f", "order": 4, "poi": {"desc": "\u9000\u623f\u5e76\u53d6\u884c\u674e\uff0c\u884c\u674e\u53ef\u5bc4\u524d\u53f0\u81f3\u51fa\u53d1\u524d\u3002", "lat": 3.1455, "lng": 101.6968, "name": "Hotel Majestic \u9000\u623f\u53d6\u884c\u674e"}, "time": "14:00", "transport": "grab", "type": "checkout"}, {"booking_note": "\u514d\u7a0e\u5e97\u5728KLIA\u673a\u573a\u5185\uff0c\u8fc7\u5b89\u68c0/\u79fb\u6c11\u5c40\u540e\u8d2d\u4e70\uff0c\u65e0\u9700\u63d0\u524d\u5b89\u6392", "confidence": "yellow", "distance_from_prev": "50km / Grab\u7ea655-70\u5206\u949f", "duration_display": "0 \u5206\u949f", "duration_min": 0, "est_cost_rm": 80, "need_booking": false, "notes": "\u5efa\u8bae16:30\u51fa\u53d1\uff0c19:50\u822a\u73ed\uff0c\u9700\u63d0\u524d2\u5c0f\u65f6\u5230\u673a\u573a\uff1bGrab\u7ea6RM70-90\u3002\u503c\u673a\u540e\u8fdb\u5165\u514d\u7a0e\u533a\u53ef\u8d2d\u4e70\u5de7\u514b\u529b\u3001\u767d\u5496\u5561\u3001\u71d5\u7a9d\u7b49\u624b\u4fe1\uff08\u514d\u7a0e\u5e97\u5728\u673a\u573a\u5185\uff0c\u8fc7\u79fb\u6c11\u5c40\u540e\uff09\u3002", "order": 5, "poi": {"desc": "\u524d\u5f80 KLIA \u673a\u573a\uff0c\u503c\u673a\u540e\u514d\u7a0e\u533a\u53ef\u8d2d\u5de7\u514b\u529b\u3001\u767d\u5496\u5561\u3001\u71d5\u7a9d\u7b49\u4f34\u624b\u793c(\u514d\u7a0e\u5e97\u5728\u673a\u573a\u5185)\u3002", "lat": 2.7456, "lng": 101.7099, "name": "\u51fa\u53d1 - \u5409\u9686\u5761\u56fd\u9645\u673a\u573a (KLIA)"}, "time": "16:30", "transport": "grab", "type": "depart"}], "summary": "\u9521\u8721\u5382DIY \u2192 \u8089\u9aa8\u8336\u5348\u9910 \u2192 \u56de\u9152\u5e97\u53d6\u884c\u674e \u2192 \u51fa\u53d1\u673a\u573a\uff08\u514d\u7a0e\u5e97\u5728\u673a\u573a\u5185\uff09", "theme": "\u6700\u540e\u4e00\u5929 \u00b7 \u65e9\u91c7\u8d2d + \u6700\u540e\u5348\u9910 \u2192 \u51fa\u53d1\u673a\u573a", "total_distance_km": 63, "weather": {"condition": "\u591a\u4e91\u8f6c\u6674", "rain_prob": 0.3, "temp": "25-32\u00b0C"}}];
+
+  days.forEach((day, idx) => {
+    const color = dayColors[idx % dayColors.length];
+
+    // === 路线绘制 ===
+    // 优先使用 day.routes[].geometry（真实道路 polyline）
+    // 拿不到时退到 day.routes[].description（路径文字版，画虚线）
+    // 都没有时退到直接连点（虚线 + 红字提示）
+    const routes = day.routes || [];
+    if (routes.length > 0) {
+      routes.forEach(r => {
+        if (r.geometry && r.geometry.length >= 2) {
+          // 真实路线（lng,lat → lat,lng for Leaflet）
+          const latlngs = r.geometry.map(p => [p[1], p[0]]);
+          L.polyline(latlngs, {
+            color, weight: 5, opacity: 0.85
+          }).addTo(map).bindTooltip(`D${day.day_index} 路段 ${r.from}→${r.to} · 实际道路`, {sticky: true});
+        } else if (r.source === "straight_line_unavailable" || !r.geometry) {
+          // 兜底：直线 + 虚线 + 红字提示
+          const stopFrom = day.stops[r.from], stopTo = day.stops[r.to];
+          if (stopFrom && stopTo && stopFrom.poi.lat && stopTo.poi.lat) {
+            L.polyline([
+              [stopFrom.poi.lat, stopFrom.poi.lng],
+              [stopTo.poi.lat,   stopTo.poi.lng]
+            ], {
+              color: '#999', weight: 3, opacity: 0.6, dashArray: '8,8'
+            }).addTo(map).bindTooltip(
+              `⚠️ D${day.day_index} 路段 ${r.from}→${r.to} 实际路线未获取`,
+              {sticky: true}
+            );
+          }
+        }
+      });
+    } else {
+      // 完全没 routes 字段时，老兼容：按 stops 顺序连虚线
+      const dayLatLngs = day.stops.map(s => [s.poi.lat, s.poi.lng])
+                                  .filter(p => p[0] && p[1]);
+      if (dayLatLngs.length >= 2) {
+        L.polyline(dayLatLngs, {
+          color: '#999', weight: 3, opacity: 0.6, dashArray: '8,8'
+        }).addTo(map).bindTooltip(
+          `⚠️ D${day.day_index} 实际路线数据缺失（agent 未生成 routes 字段）`,
+          {sticky: true}
+        );
+      }
+    }
+
+    // === Marker 绘制 ===
+    day.stops.forEach((s, i) => {
+      if (!s.poi.lat || !s.poi.lng) return;
+      const isUnverified = s.poi.coord_status === "unverified";
+      const icon = L.divIcon({
+        className: 'day-marker',
+        html: `<div style="background:${color};color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:${isUnverified?'2px dashed #fff':'2px solid #fff'};box-shadow:0 1px 4px rgba(0,0,0,0.3);">D${day.day_index}·${i+1}</div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+      const m = L.marker([s.poi.lat, s.poi.lng], { icon }).addTo(map);
+      const verifyTag = isUnverified ? '<br><span style="color:#e67e22;">⚠️ 坐标待校验</span>' : '';
+      m.bindPopup(`<b>D${day.day_index} 第 ${i+1} 站 · ${s.poi.name}</b><br>🕐 ${s.time}<br>${s.poi.category||''}${verifyTag}`);
+      allLatLngs.push([s.poi.lat, s.poi.lng]);
+    });
+  });
+
+  // === 路线图例 ===
+  const legend = L.control({position: 'bottomleft'});
+  legend.onAdd = function() {
+    const div = L.DomUtil.create('div', 'map-legend');
+    div.innerHTML = `
+      <div style="background:rgba(255,255,255,0.95);padding:8px 12px;border-radius:6px;font-size:12px;line-height:1.6;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+        <div><span style="display:inline-block;width:24px;height:3px;background:#3498db;vertical-align:middle;"></span> 实际道路路线</div>
+        <div><span style="display:inline-block;width:24px;height:3px;background:#999;border-top:1px dashed #999;vertical-align:middle;"></span> 实际路线未获取（直线示意）</div>
+      </div>`;
+    return div;
+  };
+  legend.addTo(map);
+  if (allLatLngs.length === 1) {
+    map.setView(allLatLngs[0], 13);
+  } else if (allLatLngs.length > 1) {
+    map.fitBounds(allLatLngs, { padding: [60, 60], maxZoom: 14 });
+  } else {
+    map.setView([35, 105], 5);
+  }
+
+  // 预算饼图
+  const ctx = document.getElementById('budget-pie');
+  if (ctx) {
+    const bd = {"_doc": "\u767d\u5496\u5561\u3001\u5de7\u514b\u529b\u3001\u624b\u4fe1\u7b49", "accommodation": 0, "buffer": 600, "food": 1800, "shopping": 600, "ticket": 600, "transport_intra": 1000, "transport_long": 2400};
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['大交通','住宿','餐饮','门票','市内交通','备用'],
+        datasets: [{
+          data: [bd.transport_long, bd.accommodation, bd.food, bd.ticket, bd.transport_intra, bd.buffer],
+          backgroundColor: ['#3498db','#9b59b6','#e74c3c','#f39c12','#1abc9c','#95a5a6'],
+        }]
+      },
+      options: { plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+</script>
+</body>
+</html>
